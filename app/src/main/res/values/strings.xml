@@ -1,0 +1,150 @@
+<resources>
+    <string name="app_name">ASHA Healthcare</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_title">ASHA Healthcare</string>
+    <string name="splash_subtitle">Empowering Community Health</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="hint_phone">Phone Number</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_create_account">Create Account</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="sign_up">Sign Up</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Fill in your details</string>
+    <string name="hint_name">Full Name</string>
+    <string name="hint_email">Email Address</string>
+    <string name="hint_confirm_password">Confirm Password</string>
+    <string name="hint_state">State</string>
+    <string name="hint_district">District</string>
+    <string name="hint_area">Area/Village</string>
+    <string name="btn_register">Register</string>
+    <string name="already_have_account">Already have an account?</string>
+
+    <!-- Home Screen -->
+    <string name="welcome_asha">Welcome, ASHA Worker</string>
+    <string name="menu_patients">Patients</string>
+    <string name="menu_pregnancy">Pregnancy</string>
+    <string name="menu_child_growth">Child Growth</string>
+    <string name="menu_vaccination">Vaccination</string>
+    <string name="menu_history">History</string>
+    <string name="menu_sync">Data Sync</string>
+    <string name="menu_profile">Profile</string>
+    <string name="menu_ai_insights">AI Insights</string>
+    <string name="btn_sync_now">Sync Now</string>
+
+    <!-- Patient Module -->
+    <string name="add_patient">Add Patient</string>
+    <string name="patient_list">Patients</string>
+    <string name="patient_name">Patient Name</string>
+    <string name="patient_age">Age</string>
+    <string name="patient_gender">Gender</string>
+    <string name="patient_phone">Phone</string>
+    <string name="patient_location">Location</string>
+    <string name="patient_category">Category</string>
+    <string name="patient_dob">Date of Birth</string>
+    <string name="patient_notes">Medical Notes</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_update">Update</string>
+    <string name="btn_delete">Delete</string>
+
+    <!-- Categories -->
+    <string name="category_child">Child</string>
+    <string name="category_pregnant">Pregnant Woman</string>
+    <string name="category_adult">Adult</string>
+
+    <!-- Gender -->
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_other">Other</string>
+
+    <!-- Pregnancy Module -->
+    <string name="pregnancy_list">Pregnant Women</string>
+    <string name="add_pregnancy_visit">Add Visit</string>
+    <string name="expected_delivery">Expected Delivery</string>
+    <string name="last_visit">Last Visit</string>
+    <string name="bp_reading">BP Reading</string>
+    <string name="weight">Weight</string>
+    <string name="complaints">Complaints</string>
+    <string name="visit_date">Visit Date</string>
+    <string name="visit_notes">Visit Notes</string>
+
+    <!-- Child Growth Module -->
+    <string name="child_growth_list">Child Growth Tracker</string>
+    <string name="add_growth_record">Add Record</string>
+    <string name="height">Height (cm)</string>
+    <string name="weight_kg">Weight (kg)</string>
+    <string name="head_circumference">Head Circumference (cm)</string>
+    <string name="growth_status">Growth Status</string>
+
+    <!-- Vaccination Module -->
+    <string name="vaccination_list">Vaccinations</string>
+    <string name="add_vaccination">Add Vaccination</string>
+    <string name="vaccine_name">Vaccine Name</string>
+    <string name="vaccine_date">Date Given</string>
+    <string name="vaccine_due_date">Due Date</string>
+    <string name="vaccine_status">Status</string>
+    <string name="status_due">Due</string>
+    <string name="status_upcoming">Upcoming</string>
+    <string name="status_overdue">Overdue</string>
+    <string name="status_completed">Completed</string>
+
+    <!-- Visit History -->
+    <string name="visit_history">Visit History</string>
+    <string name="no_visits">No visits recorded</string>
+
+    <!-- Sync Status -->
+    <string name="sync_status">Sync Status</string>
+    <string name="pending_records">Pending Records</string>
+    <string name="synced_records">Synced Records</string>
+    <string name="last_sync">Last Sync</string>
+    <string name="sync_success">Sync Successful</string>
+    <string name="sync_failed">Sync Failed</string>
+    <string name="sync_in_progress">Syncing...</string>
+    <string name="no_internet">No Internet Connection</string>
+
+    <!-- Profile -->
+    <string name="profile">Profile</string>
+    <string name="worker_id">Worker ID</string>
+    <string name="assigned_area">Assigned Area</string>
+    <string name="btn_logout">Logout</string>
+    <string name="app_version">App Version</string>
+
+    <!-- AI Insights -->
+    <string name="ai_insights">AI Insights</string>
+    <string name="ai_placeholder">AI-powered health insights will appear here. This feature analyzes patient data to provide recommendations and identify health trends in your community.</string>
+
+    <!-- Alerts -->
+    <string name="patient_alerts">Patient Alerts</string>
+    <string name="high_risk">High Risk</string>
+    <string name="medium_risk">Medium Risk</string>
+    <string name="low_risk">Low Risk</string>
+
+    <!-- General -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="confirm">Confirm</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="ok">OK</string>
+    <string name="retry">Retry</string>
+    <string name="search">Search</string>
+    <string name="filter">Filter</string>
+    <string name="no_data">No data available</string>
+    <string name="select_date">Select Date</string>
+
+    <!-- API Base URL -->
+    <string name="api_base_url">http://10.50.18.128/asha_api/</string>
+</resources>
