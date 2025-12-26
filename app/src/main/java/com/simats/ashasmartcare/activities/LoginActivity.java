@@ -3,17 +3,18 @@ package com.simats.ashasmartcare.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import com.simats.ashasmartcare.R;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.network.ApiHelper;
@@ -29,11 +30,12 @@ import org.json.JSONObject;
  */
 public class LoginActivity extends AppCompatActivity {
 
-    private TextInputLayout tilPhone, tilPassword;
-    private TextInputEditText etPhone, etPassword;
+    private EditText etPhone, etPassword;
     private Button btnLogin;
-    private TextView tvCreateAccount, tvForgotPassword;
+    private TextView tvCreateAccount, tvForgotPassword, tvHelp;
+    private ImageView ivTogglePassword;
     private ProgressBar progressBar;
+    private boolean isPasswordVisible = false;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -50,13 +52,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        tilPhone = findViewById(R.id.til_phone);
-        tilPassword = findViewById(R.id.til_password);
         etPhone = findViewById(R.id.et_phone);
         etPassword = findViewById(R.id.et_password);
         btnLogin = findViewById(R.id.btn_login);
         tvCreateAccount = findViewById(R.id.tv_create_account);
         tvForgotPassword = findViewById(R.id.tv_forgot_password);
+        tvHelp = findViewById(R.id.tv_help);
+        ivTogglePassword = findViewById(R.id.iv_toggle_password);
         progressBar = findViewById(R.id.progress_bar);
     }
 
@@ -87,60 +89,86 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "Contact administrator to reset password", Toast.LENGTH_SHORT).show();
             }
         });
+
+        if (tvHelp != null) {
+            tvHelp.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(LoginActivity.this, "Help & Support", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (ivTogglePassword != null) {
+            ivTogglePassword.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    togglePasswordVisibility();
+                }
+            });
+        }
+    }
+
+    private void togglePasswordVisibility() {
+        if (isPasswordVisible) {
+            etPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            ivTogglePassword.setImageResource(R.drawable.ic_visibility_off);
+        } else {
+            etPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            ivTogglePassword.setImageResource(R.drawable.ic_visibility);
+        }
+        isPasswordVisible = !isPasswordVisible;
+        etPassword.setSelection(etPassword.getText().length());
     }
 
     private void validateAndLogin() {
-        // Reset errors
-        tilPhone.setError(null);
-        tilPassword.setError(null);
-
-        String phone = etPhone.getText().toString().trim();
+        String phoneOrWorkerId = etPhone.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
         // Validation
-        if (TextUtils.isEmpty(phone)) {
-            tilPhone.setError("Phone number is required");
+        if (TextUtils.isEmpty(phoneOrWorkerId)) {
+            etPhone.setError("Phone number or Worker ID is required");
             etPhone.requestFocus();
             return;
         }
 
-        if (phone.length() < 10) {
-            tilPhone.setError("Enter valid phone number");
+        if (phoneOrWorkerId.length() < 4) {
+            etPhone.setError("Enter valid phone number or Worker ID");
             etPhone.requestFocus();
             return;
         }
 
         if (TextUtils.isEmpty(password)) {
-            tilPassword.setError("Password is required");
+            etPassword.setError("Password is required");
             etPassword.requestFocus();
             return;
         }
 
         if (password.length() < 4) {
-            tilPassword.setError("Password too short");
+            etPassword.setError("Password too short");
             etPassword.requestFocus();
             return;
         }
 
         // Attempt login
-        performLogin(phone, password);
+        performLogin(phoneOrWorkerId, password);
     }
 
-    private void performLogin(String phone, String password) {
+    private void performLogin(String phoneOrWorkerId, String password) {
         showLoading(true);
 
         // Check if network is available
         if (NetworkUtils.isNetworkAvailable(this)) {
             // Online login
-            loginOnline(phone, password);
+            loginOnline(phoneOrWorkerId, password);
         } else {
             // Offline login
-            loginOffline(phone, password);
+            loginOffline(phoneOrWorkerId, password);
         }
     }
 
-    private void loginOnline(String phone, String password) {
-        apiHelper.login(phone, password, new ApiHelper.ApiCallback() {
+    private void loginOnline(String phoneOrWorkerId, String password) {
+        apiHelper.login(phoneOrWorkerId, password, new ApiHelper.ApiCallback() {
             @Override
             public void onSuccess(JSONObject response) {
                 showLoading(false);
@@ -153,7 +181,7 @@ public class LoginActivity extends AppCompatActivity {
                         sessionManager.createLoginSession(
                                 user.optLong("id", 0),
                                 user.optString("name", ""),
-                                user.optString("phone", phone),
+                                user.optString("phone", phoneOrWorkerId),
                                 user.optString("email", ""),
                                 user.optString("worker_id", ""),
                                 user.optString("state", ""),
@@ -162,7 +190,7 @@ public class LoginActivity extends AppCompatActivity {
                         );
 
                         // Save to local DB for offline login
-                        dbHelper.setUserLoggedIn(phone, true);
+                        dbHelper.setUserLoggedIn(phoneOrWorkerId, true);
 
                         navigateToHome();
                     } else {
@@ -170,11 +198,11 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
                         
                         // Try offline login as fallback
-                        loginOffline(phone, password);
+                        loginOffline(phoneOrWorkerId, password);
                     }
                 } catch (JSONException e) {
                     Toast.makeText(LoginActivity.this, "Error parsing response", Toast.LENGTH_SHORT).show();
-                    loginOffline(phone, password);
+                    loginOffline(phoneOrWorkerId, password);
                 }
             }
 
@@ -182,26 +210,26 @@ public class LoginActivity extends AppCompatActivity {
             public void onError(String errorMessage) {
                 showLoading(false);
                 Toast.makeText(LoginActivity.this, "Server error: " + errorMessage + ". Trying offline login...", Toast.LENGTH_SHORT).show();
-                loginOffline(phone, password);
+                loginOffline(phoneOrWorkerId, password);
             }
         });
     }
 
-    private void loginOffline(String phone, String password) {
+    private void loginOffline(String phoneOrWorkerId, String password) {
         showLoading(false);
         
-        // Validate from local database
-        boolean isValid = dbHelper.validateUser(phone, password);
+        // Validate from local database (supports both phone and worker_id)
+        boolean isValid = dbHelper.validateUser(phoneOrWorkerId, password);
         
         if (isValid) {
             // Set login status
-            dbHelper.setUserLoggedIn(phone, true);
+            dbHelper.setUserLoggedIn(phoneOrWorkerId, true);
             
             // Create basic session (limited info in offline mode)
             sessionManager.createLoginSession(
                     0, // No server ID in offline mode
                     "ASHA Worker",
-                    phone,
+                    phoneOrWorkerId,
                     "",
                     "",
                     "",

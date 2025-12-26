@@ -45,7 +45,15 @@
     <color name="gradient_end">#1565C0</color>
     
     <!-- Splash Screen -->
-    <color name="splash_background">#1E88E5</color>
+    <color name="splash_background">#FFFFFF</color>
+    <color name="splash_text_dark">#2D3748</color>
+    <color name="splash_text_accent">#00BCD4</color>
+    <color name="splash_text_secondary">#718096</color>
+    <color name="splash_text_tertiary">#A0AEC0</color>
+    <color name="splash_circle_outer">#F0F7FB</color>
+    <color name="splash_circle_middle">#FAFCFE</color>
+    <color name="splash_progress_active">#1E88E5</color>
+    <color name="splash_progress_inactive">#E2E8F0</color>
     
     <!-- Divider -->
     <color name="divider">#E0E0E0</color>

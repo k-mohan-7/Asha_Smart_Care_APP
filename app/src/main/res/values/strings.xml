@@ -5,31 +5,52 @@
     <string name="title_notifications">Notifications</string>
 
     <!-- Splash Screen -->
-    <string name="splash_title">ASHA Healthcare</string>
-    <string name="splash_subtitle">Empowering Community Health</string>
+    <string name="splash_title">ASHA SmartCare</string>
+    <string name="splash_subtitle">Empowering your health journey with intelligent, compassionate care.</string>
+    <string name="secure_environment">SECURE ENVIRONMENT</string>
 
     <!-- Login Screen -->
     <string name="login_title">Welcome Back</string>
-    <string name="login_subtitle">Sign in to continue</string>
+    <string name="login_subtitle">Sign in to access your daily tasks and manage visits.</string>
     <string name="hint_phone">Phone Number</string>
     <string name="hint_password">Password</string>
+    <string name="hint_mobile_or_user_id">Mobile Number or User ID</string>
+    <string name="hint_enter_id_or_mobile">Enter your ID or Mobile</string>
+    <string name="hint_enter_password">Enter your password</string>
     <string name="btn_login">Login</string>
     <string name="btn_create_account">Create Account</string>
     <string name="forgot_password">Forgot Password?</string>
     <string name="dont_have_account">Don\'t have an account?</string>
     <string name="sign_up">Sign Up</string>
+    <string name="register_here">Register Here</string>
+    <string name="help_and_support">Help &amp; Support</string>
+    <string name="toggle_password">Toggle password visibility</string>
 
     <!-- Register Screen -->
     <string name="register_title">Create Account</string>
-    <string name="register_subtitle">Fill in your details</string>
+    <string name="register_subtitle">Register to start tracking your community visits.</string>
     <string name="hint_name">Full Name</string>
+    <string name="hint_enter_full_name">Enter your full name</string>
+    <string name="hint_mobile_number">Mobile Number</string>
+    <string name="hint_enter_mobile">Enter mobile number</string>
+    <string name="hint_asha_worker_id">ASHA Worker ID</string>
+    <string name="hint_enter_worker_id">Enter worker ID</string>
+    <string name="hint_assigned_village">Assigned Village</string>
+    <string name="hint_enter_village">Enter assigned village</string>
+    <string name="hint_phc_block">PHC / Block Name</string>
+    <string name="hint_enter_phc">Enter PHC or block name</string>
+    <string name="hint_create_password">Create Password</string>
     <string name="hint_email">Email Address</string>
     <string name="hint_confirm_password">Confirm Password</string>
     <string name="hint_state">State</string>
     <string name="hint_district">District</string>
     <string name="hint_area">Area/Village</string>
     <string name="btn_register">Register</string>
+    <string name="btn_register_arrow">Register→</string>
+    <string name="btn_back">Back</string>
     <string name="already_have_account">Already have an account?</string>
+    <string name="log_in">Log In</string>
+    <string name="terms_agreement">I agree to the Terms of Service and Privacy Policy</string>
 
     <!-- Home Screen -->
     <string name="welcome_asha">Welcome, ASHA Worker</string>

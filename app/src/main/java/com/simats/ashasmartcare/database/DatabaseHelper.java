@@ -1055,16 +1055,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_USERS, null, values);
     }
 
-    public boolean validateUser(String phone, String password) {
+    public boolean validateUser(String phoneOrWorkerId, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_USERS + " WHERE " + COL_PHONE + " = ? AND " + COL_PASSWORD + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{phone, password});
+        // Allow login with either phone number OR worker ID
+        String query = "SELECT * FROM " + TABLE_USERS + " WHERE (" + COL_PHONE + " = ? OR " + COL_WORKER_ID + " = ?) AND " + COL_PASSWORD + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{phoneOrWorkerId, phoneOrWorkerId, password});
         boolean valid = cursor.moveToFirst();
         cursor.close();
         return valid;
     }
 
-    public void setUserLoggedIn(String phone, boolean loggedIn) {
+    public void setUserLoggedIn(String phoneOrWorkerId, boolean loggedIn) {
         SQLiteDatabase db = this.getWritableDatabase();
         // First, log out all users
         ContentValues logoutAll = new ContentValues();
@@ -1074,7 +1075,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (loggedIn) {
             ContentValues values = new ContentValues();
             values.put(COL_IS_LOGGED_IN, 1);
-            db.update(TABLE_USERS, values, COL_PHONE + " = ?", new String[]{phone});
+            // Update by phone OR worker_id
+            db.update(TABLE_USERS, values, COL_PHONE + " = ? OR " + COL_WORKER_ID + " = ?", new String[]{phoneOrWorkerId, phoneOrWorkerId});
         }
     }
 

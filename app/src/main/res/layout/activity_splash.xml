@@ -4,77 +4,155 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary">
+    android:background="@drawable/bg_splash_gradient">
 
-    <!-- Logo -->
-    <ImageView
-        android:id="@+id/iv_logo"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:src="@drawable/ic_launcher_foreground"
-        android:background="@drawable/circle_white_bg"
-        android:padding="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/tv_app_name"
+    <!-- Outer Circle (Largest) -->
+    <View
+        android:id="@+id/circle_outer"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="@drawable/bg_logo_circle_outer"
+        app:layout_constraintBottom_toTopOf="@+id/layout_app_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:contentDescription="@string/app_name" />
+        app:layout_constraintVertical_bias="0.35"
+        app:layout_constraintVertical_chainStyle="packed" />
 
-    <!-- App Name -->
-    <TextView
-        android:id="@+id/tv_app_name"
+    <!-- Middle Circle -->
+    <View
+        android:id="@+id/circle_middle"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:background="@drawable/bg_logo_circle_middle"
+        app:layout_constraintBottom_toBottomOf="@id/circle_outer"
+        app:layout_constraintEnd_toEndOf="@id/circle_outer"
+        app:layout_constraintStart_toStartOf="@id/circle_outer"
+        app:layout_constraintTop_toTopOf="@id/circle_outer" />
+
+    <!-- Inner Circle (White with shadow) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_logo"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="100dp"
+        app:cardElevation="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/circle_outer"
+        app:layout_constraintEnd_toEndOf="@id/circle_outer"
+        app:layout_constraintStart_toStartOf="@id/circle_outer"
+        app:layout_constraintTop_toTopOf="@id/circle_outer">
+
+        <!-- Logo Image -->
+        <ImageView
+            android:id="@+id/iv_logo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerCrop"
+            android:src="@drawable/asha_logo" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- App Name with styled text -->
+    <LinearLayout
+        android:id="@+id/layout_app_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/splash_title"
-        android:textColor="@color/white"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-medium"
-        app:layout_constraintBottom_toTopOf="@+id/tv_tagline"
+        android:layout_marginTop="40dp"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iv_logo" />
+        app:layout_constraintTop_toBottomOf="@+id/circle_outer">
+
+        <TextView
+            android:id="@+id/tv_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ASHA"
+            android:textColor="#2D3748"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black" />
+
+        <TextView
+            android:id="@+id/tv_app_name_smart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="SmartCare"
+            android:textColor="#00BCD4"
+            android:textSize="32sp"
+            android:textStyle="normal"
+            android:fontFamily="sans-serif-medium" />
+
+    </LinearLayout>
 
     <!-- Tagline -->
     <TextView
         android:id="@+id/tv_tagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="40dp"
         android:text="@string/splash_subtitle"
-        android:textColor="@color/white"
+        android:textColor="#718096"
         android:textSize="16sp"
-        android:alpha="0.9"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_app_name" />
+        app:layout_constraintTop_toBottomOf="@+id/layout_app_name" />
 
-    <!-- Loading indicator at bottom -->
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginBottom="48dp"
-        android:indeterminateTint="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- Version text -->
-    <TextView
-        android:id="@+id/tv_version"
+    <!-- Progress Indicator Container -->
+    <LinearLayout
+        android:id="@+id/progress_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Version 1.0"
-        android:textColor="@color/white"
-        android:textSize="12sp"
-        android:alpha="0.7"
+        android:layout_marginBottom="60dp"
+        android:orientation="vertical"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Custom Progress Bar -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Progress segment 1 (active) -->
+            <View
+                android:id="@+id/progress_segment_1"
+                android:layout_width="60dp"
+                android:layout_height="4dp"
+                android:background="@drawable/bg_progress_segment_active" />
+
+            <!-- Progress segment 2 (inactive) -->
+            <View
+                android:id="@+id/progress_segment_2"
+                android:layout_width="60dp"
+                android:layout_height="4dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_progress_segment_inactive" />
+
+        </LinearLayout>
+
+        <!-- Secure Environment Text -->
+        <TextView
+            android:id="@+id/tv_secure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="SECURE ENVIRONMENT"
+            android:textColor="#A0AEC0"
+            android:textSize="12sp"
+            android:letterSpacing="0.15"
+            android:fontFamily="sans-serif-medium" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

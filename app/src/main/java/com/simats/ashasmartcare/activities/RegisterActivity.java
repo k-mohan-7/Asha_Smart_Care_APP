@@ -3,29 +3,27 @@ package com.simats.ashasmartcare.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import com.simats.ashasmartcare.R;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.network.ApiHelper;
-import com.simats.ashasmartcare.utils.Constants;
 import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.utils.SessionManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.UUID;
 
 /**
  * Register Activity
@@ -33,14 +31,15 @@ import java.util.UUID;
  */
 public class RegisterActivity extends AppCompatActivity {
 
-    private TextInputLayout tilName, tilEmail, tilPhone, tilPassword, tilConfirmPassword;
-    private TextInputLayout tilState, tilDistrict, tilArea;
-    private TextInputEditText etName, etEmail, etPhone, etPassword, etConfirmPassword;
-    private TextInputEditText etDistrict, etArea;
-    private AutoCompleteTextView spinnerState;
+    private EditText etName, etPhone, etWorkerId, etVillage, etPhc, etPassword, etConfirmPassword;
+    private ImageView ivBack, ivTogglePassword, ivToggleConfirmPassword;
+    private CheckBox cbTerms;
     private Button btnRegister;
     private TextView tvLogin;
     private ProgressBar progressBar;
+    
+    private boolean isPasswordVisible = false;
+    private boolean isConfirmPasswordVisible = false;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -53,28 +52,22 @@ public class RegisterActivity extends AppCompatActivity {
 
         initViews();
         initHelpers();
-        setupSpinners();
         setupListeners();
     }
 
     private void initViews() {
-        tilName = findViewById(R.id.til_name);
-        tilEmail = findViewById(R.id.til_email);
-        tilPhone = findViewById(R.id.til_phone);
-        tilPassword = findViewById(R.id.til_password);
-        tilConfirmPassword = findViewById(R.id.til_confirm_password);
-        tilState = findViewById(R.id.til_state);
-        tilDistrict = findViewById(R.id.til_district);
-        tilArea = findViewById(R.id.til_area);
-
         etName = findViewById(R.id.et_name);
-        etEmail = findViewById(R.id.et_email);
         etPhone = findViewById(R.id.et_phone);
+        etWorkerId = findViewById(R.id.et_worker_id);
+        etVillage = findViewById(R.id.et_village);
+        etPhc = findViewById(R.id.et_phc);
         etPassword = findViewById(R.id.et_password);
         etConfirmPassword = findViewById(R.id.et_confirm_password);
-        spinnerState = findViewById(R.id.spinner_state);
-        etDistrict = findViewById(R.id.et_district);
-        etArea = findViewById(R.id.et_area);
+
+        ivBack = findViewById(R.id.iv_back);
+        ivTogglePassword = findViewById(R.id.iv_toggle_password);
+        ivToggleConfirmPassword = findViewById(R.id.iv_toggle_confirm_password);
+        cbTerms = findViewById(R.id.cb_terms);
 
         btnRegister = findViewById(R.id.btn_register);
         tvLogin = findViewById(R.id.tv_login);
@@ -87,118 +80,115 @@ public class RegisterActivity extends AppCompatActivity {
         apiHelper = ApiHelper.getInstance(this);
     }
 
-    private void setupSpinners() {
-        // Setup state spinner
-        ArrayAdapter<String> stateAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                Constants.INDIAN_STATES
-        );
-        spinnerState.setAdapter(stateAdapter);
-    }
-
     private void setupListeners() {
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                validateAndRegister();
-            }
-        });
+        if (ivBack != null) {
+            ivBack.setOnClickListener(v -> finish());
+        }
 
-        tvLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        btnRegister.setOnClickListener(v -> validateAndRegister());
+
+        tvLogin.setOnClickListener(v -> finish());
+
+        if (ivTogglePassword != null) {
+            ivTogglePassword.setOnClickListener(v -> {
+                if (isPasswordVisible) {
+                    etPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    ivTogglePassword.setImageResource(R.drawable.ic_visibility_off);
+                } else {
+                    etPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    ivTogglePassword.setImageResource(R.drawable.ic_visibility);
+                }
+                isPasswordVisible = !isPasswordVisible;
+                etPassword.setSelection(etPassword.getText().length());
+            });
+        }
+
+        if (ivToggleConfirmPassword != null) {
+            ivToggleConfirmPassword.setOnClickListener(v -> {
+                if (isConfirmPasswordVisible) {
+                    etConfirmPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    ivToggleConfirmPassword.setImageResource(R.drawable.ic_visibility_off);
+                } else {
+                    etConfirmPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    ivToggleConfirmPassword.setImageResource(R.drawable.ic_visibility);
+                }
+                isConfirmPasswordVisible = !isConfirmPasswordVisible;
+                etConfirmPassword.setSelection(etConfirmPassword.getText().length());
+            });
+        }
     }
 
     private void validateAndRegister() {
-        // Reset errors
-        tilName.setError(null);
-        tilEmail.setError(null);
-        tilPhone.setError(null);
-        tilPassword.setError(null);
-        tilConfirmPassword.setError(null);
-        tilState.setError(null);
-        tilDistrict.setError(null);
-        tilArea.setError(null);
-
         String name = etName.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
+        String workerId = etWorkerId.getText().toString().trim();
+        String village = etVillage.getText().toString().trim();
+        String phc = etPhc.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
-        String state = spinnerState.getText().toString().trim();
-        String district = etDistrict.getText().toString().trim();
-        String area = etArea.getText().toString().trim();
 
         // Validation
         if (TextUtils.isEmpty(name)) {
-            tilName.setError("Name is required");
+            etName.setError("Name is required");
             etName.requestFocus();
             return;
         }
 
         if (TextUtils.isEmpty(phone)) {
-            tilPhone.setError("Phone number is required");
+            etPhone.setError("Phone number is required");
             etPhone.requestFocus();
             return;
         }
 
         if (phone.length() < 10) {
-            tilPhone.setError("Enter valid phone number");
+            etPhone.setError("Enter valid phone number");
             etPhone.requestFocus();
             return;
         }
 
-        if (!TextUtils.isEmpty(email) && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            tilEmail.setError("Enter valid email");
-            etEmail.requestFocus();
+        if (TextUtils.isEmpty(workerId)) {
+            etWorkerId.setError("Worker ID is required");
+            etWorkerId.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(village)) {
+            etVillage.setError("Village is required");
+            etVillage.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(phc)) {
+            etPhc.setError("PHC / Block name is required");
+            etPhc.requestFocus();
             return;
         }
 
         if (TextUtils.isEmpty(password)) {
-            tilPassword.setError("Password is required");
+            etPassword.setError("Password is required");
             etPassword.requestFocus();
             return;
         }
 
         if (password.length() < 4) {
-            tilPassword.setError("Password must be at least 4 characters");
+            etPassword.setError("Password must be at least 4 characters");
             etPassword.requestFocus();
             return;
         }
 
         if (!password.equals(confirmPassword)) {
-            tilConfirmPassword.setError("Passwords do not match");
+            etConfirmPassword.setError("Passwords do not match");
             etConfirmPassword.requestFocus();
             return;
         }
 
-        if (TextUtils.isEmpty(state)) {
-            tilState.setError("State is required");
-            spinnerState.requestFocus();
+        if (!cbTerms.isChecked()) {
+            Toast.makeText(this, "Please agree to Terms of Service", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        if (TextUtils.isEmpty(district)) {
-            tilDistrict.setError("District is required");
-            etDistrict.requestFocus();
-            return;
-        }
-
-        if (TextUtils.isEmpty(area)) {
-            tilArea.setError("Area is required");
-            etArea.requestFocus();
-            return;
-        }
-
-        // Generate worker ID
-        String workerId = "ASHA" + System.currentTimeMillis() % 100000;
 
         // Perform registration
-        performRegistration(name, email, phone, password, workerId, state, district, area);
+        performRegistration(name, "", phone, password, workerId, "", phc, village);
     }
 
     private void performRegistration(String name, String email, String phone, String password,
@@ -217,8 +207,6 @@ public class RegisterActivity extends AppCompatActivity {
                 // Offline registration success
                 showLoading(false);
                 Toast.makeText(this, "Account created locally. Will sync when online.", Toast.LENGTH_LONG).show();
-                
-                // Create session and navigate to login
                 navigateToLogin();
             }
         } else {
