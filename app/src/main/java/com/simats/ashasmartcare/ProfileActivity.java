@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +15,10 @@ import com.simats.ashasmartcare.utils.SessionManager;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private ImageView ivBack, ivEdit;
-    private TextView tvName, tvPhone, tvEmail, tvAshaId, tvLocation, tvPatientsCount;
+    private ImageView ivBack, ivEdit, ivEditPhoto;
+    private TextView tvName, tvRole, tvEmployeeId, tvDateOfBirth, tvGender;
+    private TextView tvPhone, tvEmail, tvEmergencyName, tvEmergencyPhone;
+    private TextView tvLocation, tvHouseholds, tvSupervisor;
     private Button btnLogout;
 
     private SessionManager sessionManager;
@@ -30,18 +31,34 @@ public class ProfileActivity extends AppCompatActivity {
 
         initViews();
         setupListeners();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadData();
     }
 
     private void initViews() {
         ivBack = findViewById(R.id.ivBack);
         ivEdit = findViewById(R.id.ivEdit);
+        ivEditPhoto = findViewById(R.id.ivEditPhoto);
+        
         tvName = findViewById(R.id.tvName);
+        tvRole = findViewById(R.id.tvRole);
+        tvEmployeeId = findViewById(R.id.tvEmployeeId);
+        tvDateOfBirth = findViewById(R.id.tvDateOfBirth);
+        tvGender = findViewById(R.id.tvGender);
+        
         tvPhone = findViewById(R.id.tvPhone);
         tvEmail = findViewById(R.id.tvEmail);
-        tvAshaId = findViewById(R.id.tvAshaId);
+        tvEmergencyName = findViewById(R.id.tvEmergencyName);
+        tvEmergencyPhone = findViewById(R.id.tvEmergencyPhone);
+        
         tvLocation = findViewById(R.id.tvLocation);
-        tvPatientsCount = findViewById(R.id.tvPatientsCount);
+        tvHouseholds = findViewById(R.id.tvHouseholds);
+        tvSupervisor = findViewById(R.id.tvSupervisor);
+        
         btnLogout = findViewById(R.id.btnLogout);
 
         sessionManager = SessionManager.getInstance(this);
@@ -52,21 +69,43 @@ public class ProfileActivity extends AppCompatActivity {
         ivBack.setOnClickListener(v -> finish());
         
         ivEdit.setOnClickListener(v -> {
-            Toast.makeText(this, "Edit profile feature coming soon", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, EditProfileActivity.class);
+            startActivity(intent);
+        });
+
+        ivEditPhoto.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EditProfileActivity.class);
+            startActivity(intent);
         });
 
         btnLogout.setOnClickListener(v -> showLogoutDialog());
     }
 
     private void loadData() {
+        // Load basic info from SessionManager
         tvName.setText(sessionManager.getUserName());
+        tvEmployeeId.setText(String.valueOf(sessionManager.getUserId()));
         tvPhone.setText(sessionManager.getUserPhone());
         tvEmail.setText(sessionManager.getUserEmail());
-        tvAshaId.setText("ASHA ID: " + sessionManager.getUserId());
         tvLocation.setText(sessionManager.getUserLocation());
 
-        int patientCount = dbHelper.getAllPatients().size();
-        tvPatientsCount.setText(String.valueOf(patientCount));
+        // Load additional profile data from SharedPreferences
+        android.content.SharedPreferences prefs = getSharedPreferences("AshaHealthcarePrefs", MODE_PRIVATE);
+        String dob = prefs.getString("dob", "12 Aug 1985");
+        String gender = prefs.getString("gender", "Female");
+        String emergencyName = prefs.getString("emergency_name", "Not Set");
+        String emergencyPhone = prefs.getString("emergency_phone", "Not Set");
+        String role = prefs.getString("role", "ASHA Worker - Zone 1");
+        String households = prefs.getString("households", "0");
+        String supervisor = prefs.getString("supervisor", "Not Assigned");
+
+        tvDateOfBirth.setText(dob);
+        tvGender.setText(gender);
+        tvRole.setText(role);
+        tvEmergencyName.setText(emergencyName);
+        tvEmergencyPhone.setText(emergencyPhone.isEmpty() || emergencyPhone.equals("Not Set") ? "Not Set" : "+91 " + emergencyPhone);
+        tvHouseholds.setText(households + " Families");
+        tvSupervisor.setText(supervisor);
     }
 
     private void showLogoutDialog() {

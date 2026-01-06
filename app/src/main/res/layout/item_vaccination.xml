@@ -3,123 +3,90 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="4dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_icon_green">
+        <!-- Patient Name -->
+        <TextView
+            android:id="@+id/tv_patient_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Raju Kumar"
+            android:textColor="#1F2937"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Vaccine Name -->
+        <TextView
+            android:id="@+id/tv_vaccine_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="DPT Booster 2"
+            android:textColor="#6B7280"
+            android:textSize="14sp" />
+
+        <!-- Due Date Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/ivStatusIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_vaccine"
-                app:tint="@color/success" />
-        </FrameLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tvVaccineName"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="BCG"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/ivSyncStatus"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_sync"
-                    android:visibility="gone"
-                    app:tint="@color/warning" />
-
-                <TextView
-                    android:id="@+id/tvStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_given"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:text="Given"
-                    android:textColor="@color/white"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/layoutDates"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvScheduledDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_schedule"
-                    android:drawablePadding="4dp"
-                    android:text="Scheduled: 15 Jan 2024"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvGivenDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:drawableStart="@drawable/ic_check"
-                    android:drawablePadding="4dp"
-                    android:text="Given: 15 Jan 2024"
-                    android:textColor="@color/success"
-                    android:textSize="12sp"
-                    android:visibility="gone" />
-            </LinearLayout>
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_event"
+                app:tint="#6B7280" />
 
             <TextView
-                android:id="@+id/tvBatchNumber"
+                android:id="@+id/tv_due_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:text="Due: Oct 10"
+                android:textColor="#6B7280"
+                android:textSize="14sp" />
+
+            <!-- Status Badge -->
+            <TextView
+                android:id="@+id/tv_status_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Batch: ABC123"
-                android:textColor="@color/text_hint"
-                android:textSize="11sp"
-                android:visibility="gone" />
-
+                android:background="@drawable/bg_badge_risk"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="overdue"
+                android:textColor="#991B1B"
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_arrow_right"
-            app:tint="@color/text_hint" />
+        <!-- Mark Done Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_mark_done"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Mark Done"
+            android:textAllCaps="false"
+            android:textColor="#2563EB"
+            android:textSize="14sp"
+            app:cornerRadius="8dp"
+            app:strokeColor="#2563EB"
+            app:strokeWidth="1dp" />
 
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>
+

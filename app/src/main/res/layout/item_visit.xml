@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="4dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginBottom="12dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp">
 
@@ -12,105 +12,61 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_icon_purple">
+        <!-- Visit Icon -->
+        <ImageView
+            android:id="@+id/iv_visit_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_schedule"
+            android:background="@drawable/bg_badge_category"
+            android:padding="8dp"
+            app:tint="#3B82F6" />
 
-            <ImageView
-                android:id="@+id/ivVisitIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_history"
-                app:tint="@color/teal_700" />
-        </FrameLayout>
-
+        <!-- Visit Info -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
             android:layout_weight="1"
+            android:layout_marginStart="12dp"
             android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_visit_title"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tvVisitType"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Home Visit"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/ivSyncStatus"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_sync"
-                    android:visibility="gone"
-                    app:tint="@color/warning" />
-
-                <TextView
-                    android:id="@+id/tvVisitDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_category_tag"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="2dp"
-                    android:text="15 Jan 2024"
-                    android:textColor="@color/primary"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                android:text="ANC Visit 3"
+                android:textColor="#1F2937"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvPurpose"
+                android:id="@+id/tv_visit_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Visit purpose"
-                android:textColor="@color/text_secondary"
+                android:text="March 15, 2024"
+                android:textColor="#6B7280"
                 android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/tvFindings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Findings summary..."
-                android:textColor="@color/text_hint"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/tvNextVisit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:drawableStart="@drawable/ic_schedule"
-                android:drawablePadding="4dp"
-                android:text="Next: 22 Jan 2024"
-                android:textColor="@color/info"
-                android:textSize="12sp"
-                android:visibility="gone" />
 
         </LinearLayout>
 
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_arrow_right"
-            app:tint="@color/text_hint" />
+        <!-- Status Badge -->
+        <TextView
+            android:id="@+id/tv_visit_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_badge_category"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="Due Soon"
+            android:textColor="#1E40AF"
+            android:textSize="12sp" />
 
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>

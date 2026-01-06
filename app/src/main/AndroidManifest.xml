@@ -104,6 +104,12 @@
             android:parentActivityName=".activities.HomeActivity" />
 
         <activity
+            android:name=".PatientVaccinationDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
+            android:parentActivityName=".VaccinationListActivity" />
+
+        <activity
             android:name=".AddVaccinationActivity"
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar"
@@ -136,6 +142,13 @@
             android:theme="@style/Theme.ASHASmartCare.NoActionBar"
             android:parentActivityName=".activities.HomeActivity" />
 
+        <!-- Settings Activity -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
+            android:parentActivityName=".activities.HomeActivity" />
+
         <!-- AI Insights Activity -->
         <activity
             android:name=".AIInsightsActivity"
@@ -149,6 +162,13 @@
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar"
             android:parentActivityName=".activities.HomeActivity" />
+
+        <!-- Patient Detail Activity -->
+        <activity
+            android:name=".PatientDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
+            android:parentActivityName=".PatientsActivity" />
 
         <!-- Network Change Receiver -->
         <receiver
