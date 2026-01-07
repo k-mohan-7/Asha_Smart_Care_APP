@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F6F8FB">
+
+    <!-- Top App Bar -->
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@android:color/white"
+        app:title="Patient Profile"
+        app:navigationIcon="@drawable/ic_back"
+        app:titleTextColor="#1F2937" />
+
+    <!-- Patient Info Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="space_between">
+
+                <TextView
+                    android:text="Rohan Kumar"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#111827"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:text="High Risk"
+                    android:textColor="#DC2626"
+                    android:background="@drawable/bg_risk"
+                    android:padding="6dp"
+                    android:textSize="12sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <TextView
+                android:text="📍 Rampur Village  •  2 Years"
+                android:textColor="#6B7280"
+                android:layout_marginTop="4dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:text="Child (0-5)"
+                android:background="@drawable/bg_child"
+                android:padding="6dp"
+                android:textColor="#2563EB"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Tabs -->
+    <com.google.android.material.tabs.TabLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabIndicatorColor="#2563EB"
+        app:tabSelectedTextColor="#2563EB"
+        app:tabTextColor="#6B7280">
+
+        <com.google.android.material.tabs.TabItem android:text="Overview"/>
+        <com.google.android.material.tabs.TabItem android:text="Visits"/>
+        <com.google.android.material.tabs.TabItem android:text="Alerts"/>
+        <com.google.android.material.tabs.TabItem android:text="Growth"/>
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- Visit List -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Visit Item -->
+            <include layout="@layout/item_visit_due"/>
+            <include layout="@layout/item_visit_completed"/>
+            <include layout="@layout/item_visit_completed"/>
+            <include layout="@layout/item_visit_missed"/>
+            <include layout="@layout/item_visit_completed"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="space_between">
+
+        <Button
+            android:text="Back"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_outline_button"
+            android:textColor="#2563EB"/>
+
+        <Button
+            android:text="+ Add New Visit"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_height="48dp"
+            android:backgroundTint="#2563EB"
+            android:textColor="@android:color/white"/>
+
+    </LinearLayout>
+
+</LinearLayout>

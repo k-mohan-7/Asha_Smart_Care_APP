@@ -167,5 +167,5 @@
     <string name="select_date">Select Date</string>
 
     <!-- API Base URL -->
-    <string name="api_base_url">http://10.50.18.26/asha_api/</string>
+    <string name="api_base_url">http://10.190.92.63/asha_api/</string>
 </resources>
