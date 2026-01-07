@@ -48,6 +48,34 @@
             android:name=".activities.AdminLoginActivity"
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.AddAshaWorkerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.AdminDashboardActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.AshaWorkersActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.WorkerProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.AdminPatientsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.HighRiskAlertsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.SyncStatusActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <!-- Register Activity -->
         <activity
             android:name=".activities.RegisterActivity"
@@ -117,11 +145,7 @@
             android:exported="false"
             android:parentActivityName=".VisitHistoryActivity"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Sync Status Activity -->
-        <activity
-            android:name=".SyncStatusActivity"
-            android:exported="false"
-            android:parentActivityName=".activities.HomeActivity"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Profile Activity -->
+        <!-- Profile Activity -->
         <activity
             android:name=".ProfileActivity"
             android:exported="false"

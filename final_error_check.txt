@@ -1,0 +1,97 @@
+﻿
+  
+clean_build.log:21:> 
+Task :app:processDebug
+ManifestForPackage
+  
+clean_build.log:22:> 
+Task :app:processDebug
+Resources
+  clean_build.log:23:
+  
+clean_build.log:24:> 
+Task :app:compileDebug
+JavaWithJavac
+  clean_build.log:25:.
+\gradlew.bat : C:\Use
+  clean_build.log:26:r
+s\SSD\AndroidStudioPr
+  clean_build.log:27:o
+jects\ASHASmartCare\a
+  clean_build.log:28:p
+p\src\main\java\com\s
+  clean_build.log:29:i
+mats\ashasmartcare\Se
+  clean_build.log:30:t
+tingsActivity.java:16
+> 
+clean_build.log:31:7: 
+error: cannot find 
+  clean_build.log:32:s
+ymbol
+  
+clean_build.log:33:At 
+line:1 char:1
+  
+clean_build.log:34:+ 
+.\gradlew.bat clean 
+  clean_build.log:35::
+app:compileDebugJavaW
+  clean_build.log:36:i
+thJavac > 
+  clean_build.log:37:c
+lean_build.log  ...
+  
+clean_build.log:38:+ 
+~~~~~~~~~~~~~~~~~~~~
+  clean_build.log:39:~
+~~~~~~~~~~~~~~~~~~~~~
+  clean_build.log:40:~
+~~~~~~~~~~~~~~~~~~~~~
+  clean_build.log:41:~
+~~~~
+  clean_build.log:79:t
+ask ':app:compileDebu
+  clean_build.log:80:g
+JavaWithJavac'.
+  
+clean_build.log:81:> 
+Compilation failed; 
+  clean_build.log:82:s
+ee the compiler 
+  clean_build.log:83:o
+utput below.
+  clean_build.log:84: 
+ C:\Users\SSD\Android
+  clean_build.log:85:S
+tudioProjects\ASHASma
+  clean_build.log:86:r
+tCare\app\src\main\ja
+  clean_build.log:87:v
+a\com\simats\ashasmar
+  clean_build.log:88:t
+care\SettingsActivity
+> clean_build.log:89:.
+java:167: error: 
+  clean_build.log:90:c
+annot find symbol
+  clean_build.log:91: 
+         
+  clean_build.log:92:s
+tartActivity(new 
+  clean_build.log:93:I
+ntent(this, SyncStatu
+  clean_build.log:94:s
+Activity.class));
+  clean_build.log:95: 
+                     
+  clean_build.log:96: 
+                  ^
+  clean_build.log:97: 
+   symbol:   class 
+  clean_build.log:98:S
+yncStatusActivity
+  clean_build.log:99: 
+   location: class 
+
+

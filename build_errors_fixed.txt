@@ -1,0 +1,273 @@
+﻿> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+
+> Task :app:compileDebugJavaWithJavac FAILED
+.\gradlew.bat : C:\Use
+rs\SSD\AndroidStudioPr
+ojects\ASHASmartCare\a
+pp\src\main\java\com\s
+imats\ashasmartcare\da
+tabase\DatabaseHelper.
+java:1503: error: 
+cannot find symbol
+At line:1 char:1
++ .\gradlew.bat :app:c
+ompileDebugJavaWithJav
+ac > build_errors.txt 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (C:\Users\S   
+ SD\An...not find     
+symbol:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+    public long 
+insertWorker(Worker 
+worker) {
+                      
+       ^
+  symbol:   class 
+Worker
+  location: class 
+DatabaseHelper
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1527: 
+error: cannot find 
+symbol
+    public 
+List<Worker> 
+getAllWorkers() {
+                ^
+  symbol:   class 
+Worker
+  location: class 
+DatabaseHelper
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1544: 
+error: cannot find 
+symbol
+    private Worker 
+cursorToWorker(Cursor 
+cursor) {
+            ^
+  symbol:   class 
+Worker
+  location: class 
+DatabaseHelper
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1528: 
+error: cannot find 
+symbol
+        List<Worker> 
+workers = new 
+ArrayList<>();
+             ^
+  symbol:   class 
+Worker
+  location: class 
+DatabaseHelper
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1545: 
+error: cannot find 
+symbol
+        Worker worker 
+= new Worker();
+        ^
+  symbol:   class 
+Worker
+  location: class 
+DatabaseHelper
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1545: 
+error: cannot find 
+symbol
+        Worker worker 
+= new Worker();
+                      
+      ^
+  symbol:   class 
+Worker
+  location: class 
+DatabaseHelper
+Note: Some input 
+files use or override 
+a deprecated API.
+Note: Recompile with 
+-Xlint:deprecation 
+for details.
+6 errors
+
+[Incubating] Problems report is available at: file:///C:/Users/SSD/AndroidStudioProjects/ASHASmartCare/build/reports/problems/problems-report.html
+
+FAILURE: Build failed 
+with an exception.
+
+* What went wrong:
+Execution failed for 
+task ':app:compileDebu
+gJavaWithJavac'.
+> Compilation failed; 
+see the compiler 
+output below.
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1503: 
+error: cannot find 
+symbol
+      public long 
+insertWorker(Worker 
+worker) {
+                      
+         ^
+    symbol:   class 
+Worker
+    location: class 
+DatabaseHelper
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1527: 
+error: cannot find 
+symbol
+      public 
+List<Worker> 
+getAllWorkers() {
+                  ^
+    symbol:   class 
+Worker
+    location: class 
+DatabaseHelper
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1544: 
+error: cannot find 
+symbol
+      private Worker 
+cursorToWorker(Cursor 
+cursor) {
+              ^
+    symbol:   class 
+Worker
+    location: class 
+DatabaseHelper
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1528: 
+error: cannot find 
+symbol
+          
+List<Worker> workers 
+= new ArrayList<>();
+               ^
+    symbol:   class 
+Worker
+    location: class 
+DatabaseHelper
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1545: 
+error: cannot find 
+symbol
+          Worker 
+worker = new Worker();
+          ^
+    symbol:   class 
+Worker
+    location: class 
+DatabaseHelper
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1545: 
+error: cannot find 
+symbol
+          Worker 
+worker = new Worker();
+                      
+        ^
+    symbol:   class 
+Worker
+    location: class 
+DatabaseHelper
+  Note: Some input 
+files use or override 
+a deprecated API.
+  Note: Recompile 
+with 
+-Xlint:deprecation 
+for details.
+  6 errors
+
+* Try:
+> Check your code and 
+dependencies to fix 
+the compilation 
+error(s)
+> Run with --scan to 
+get full insights.
+
+BUILD FAILED in 5s
+20 actionable tasks: 1 executed, 19 up-to-date
