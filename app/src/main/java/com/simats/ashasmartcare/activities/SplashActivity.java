@@ -44,13 +44,13 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         // Set light status bar for white background
         WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
-        WindowInsetsControllerCompat windowInsetsController = 
-                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(),
+                getWindow().getDecorView());
         windowInsetsController.setAppearanceLightStatusBars(true);
-        
+
         setContentView(R.layout.activity_splash);
 
         initViews();
@@ -79,15 +79,15 @@ public class SplashActivity extends AppCompatActivity {
                 Animation.RELATIVE_TO_SELF, 0.5f);
         scaleIn.setDuration(800);
         scaleIn.setFillAfter(true);
-        
+
         // Fade in animation
         AlphaAnimation fadeIn = new AlphaAnimation(0f, 1f);
         fadeIn.setDuration(600);
         fadeIn.setFillAfter(true);
-        
+
         // Start circle animations
         circleOuter.startAnimation(scaleIn);
-        
+
         ScaleAnimation scaleInDelayed = new ScaleAnimation(
                 0.8f, 1f, 0.8f, 1f,
                 Animation.RELATIVE_TO_SELF, 0.5f,
@@ -96,7 +96,7 @@ public class SplashActivity extends AppCompatActivity {
         scaleInDelayed.setStartOffset(100);
         scaleInDelayed.setFillAfter(true);
         circleMiddle.startAnimation(scaleInDelayed);
-        
+
         // Logo scale animation
         ScaleAnimation logoScale = new ScaleAnimation(
                 0.5f, 1f, 0.5f, 1f,
@@ -113,17 +113,17 @@ public class SplashActivity extends AppCompatActivity {
         textFadeIn.setStartOffset(400);
         textFadeIn.setFillAfter(true);
         layoutAppName.startAnimation(textFadeIn);
-        
+
         AlphaAnimation taglineFadeIn = new AlphaAnimation(0f, 1f);
         taglineFadeIn.setDuration(600);
         taglineFadeIn.setStartOffset(500);
         taglineFadeIn.setFillAfter(true);
         tvTagline.startAnimation(taglineFadeIn);
-        
+
         // Animate progress segments
         animateProgressSegments();
     }
-    
+
     private void animateProgressSegments() {
         // Animate progress segments with a sliding effect
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -137,19 +137,19 @@ public class SplashActivity extends AppCompatActivity {
             public void run() {
                 // Check if user is logged in
                 SessionManager sessionManager = SessionManager.getInstance(SplashActivity.this);
-                
+
                 Intent intent;
                 if (sessionManager.isLoggedIn()) {
                     // Go to Home
                     intent = new Intent(SplashActivity.this, HomeActivity.class);
                 } else {
-                    // Go to Login
-                    intent = new Intent(SplashActivity.this, LoginActivity.class);
+                    // Go to Welcome Screen
+                    intent = new Intent(SplashActivity.this, WelcomeActivity.class);
                 }
-                
+
                 startActivity(intent);
                 finish();
-                
+
                 // Transition animation
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }

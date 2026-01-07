@@ -166,6 +166,6 @@ public class SessionManager {
 
     public String getApiBaseUrl() {
         // Default URL for Android Emulator to access localhost
-        return pref.getString(KEY_API_BASE_URL, "http://10.139.130.64/asha_api/");
+        return pref.getString(KEY_API_BASE_URL, "http://10.190.92.63/asha_api/");
     }
 }

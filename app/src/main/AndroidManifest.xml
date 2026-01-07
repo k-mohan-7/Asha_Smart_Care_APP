@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -21,7 +20,9 @@
         android:theme="@style/Theme.ASHASmartCare"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
         <!-- Splash Screen -->
         <activity
             android:name=".activities.SplashActivity"
@@ -29,170 +30,140 @@
             android:theme="@style/Theme.ASHASmartCare.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Login Activity -->
+        </activity> <!-- Login Activity -->
         <activity
             android:name=".activities.LoginActivity"
             android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> 
+        <!-- Welcome Activity -->
+        <activity
+            android:name=".activities.WelcomeActivity"
+            android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
-
+        <!-- Admin Login Activity -->
+        <activity
+            android:name=".activities.AdminLoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <!-- Register Activity -->
         <activity
             android:name=".activities.RegisterActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
-
-        <!-- Main Home Activity -->
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Main Home Activity -->
         <activity
             android:name=".activities.HomeActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
-
-        <!-- Patient Activities -->
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Patient Activities -->
         <activity
             android:name=".PatientListActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
             android:name=".AddPatientActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".PatientListActivity" />
-
+            android:parentActivityName=".PatientListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
             android:name=".PatientProfileActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".PatientListActivity" />
-
-        <!-- Pregnancy Activities -->
+            android:parentActivityName=".PatientListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Pregnancy Activities -->
         <activity
             android:name=".PregnancyListActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
             android:name=".AddPregnancyVisitActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".PregnancyListActivity" />
-
-        <!-- Child Growth Activities -->
+            android:parentActivityName=".PregnancyListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Child Growth Activities -->
         <activity
             android:name=".ChildGrowthListActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
             android:name=".AddChildGrowthActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".ChildGrowthListActivity" />
-
-        <!-- Vaccination Activities -->
+            android:parentActivityName=".ChildGrowthListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Vaccination Activities -->
         <activity
             android:name=".VaccinationListActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
             android:name=".PatientVaccinationDetailActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".VaccinationListActivity" />
-
+            android:parentActivityName=".VaccinationListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
             android:name=".AddVaccinationActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".VaccinationListActivity" />
-
-        <!-- Visit History Activity -->
+            android:parentActivityName=".VaccinationListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Visit History Activity -->
         <activity
             android:name=".VisitHistoryActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
             android:name=".AddVisitActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".VisitHistoryActivity" />
-
-        <!-- Sync Status Activity -->
+            android:parentActivityName=".VisitHistoryActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Sync Status Activity -->
         <activity
             android:name=".SyncStatusActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
-        <!-- Profile Activity -->
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Profile Activity -->
         <activity
             android:name=".ProfileActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
-        <!-- Settings Activity -->
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Settings Activity -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
-        <!-- AI Insights Activity -->
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- AI Insights Activity -->
         <activity
             android:name=".AIInsightsActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
-        <!-- Patient Alerts Activity -->
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Patient Alerts Activity -->
         <activity
             android:name=".PatientAlertsActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".activities.HomeActivity" />
-
-        <!-- Patient Detail Activity -->
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Patient Detail Activity -->
         <activity
             android:name=".PatientDetailActivity"
             android:exported="false"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar"
-            android:parentActivityName=".PatientsActivity" />
-
-        <!-- Network Change Receiver -->
+            android:parentActivityName=".PatientsActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Network Change Receiver -->
         <receiver
             android:name=".receivers.NetworkChangeReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
-        </receiver>
-
-        <!-- Boot Receiver for Sync -->
+        </receiver> <!-- Boot Receiver for Sync -->
         <receiver
             android:name=".receivers.BootReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-        </receiver>
-
-        <!-- Sync Service -->
+        </receiver> <!-- Sync Service -->
         <service
             android:name=".services.SyncService"
             android:exported="false" />
-
     </application>
 
 </manifest>
