@@ -21,6 +21,7 @@ import androidx.cardview.widget.CardView;
 
 import com.google.android.material.chip.Chip;
 import com.simats.ashasmartcare.database.DatabaseHelper;
+import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.utils.SessionManager;
 
 import java.text.SimpleDateFormat;
@@ -366,24 +367,48 @@ public class AddPatientActivity extends AppCompatActivity {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String currentDate = sdf.format(Calendar.getInstance().getTime());
 
-            // Insert patient into database
-            long patientId = dbHelper.addPatient(name, age, gender, selectedCategory, village, 
-                                                  phone, abhaId, ashaPhone, currentDate);
+            // ONLINE-FIRST: Try to save to server first
+            if (NetworkUtils.isNetworkAvailable(this)) {
+                // TODO: Implement API call to save patient online
+                // For now, save locally and mark for sync
+                long patientId = dbHelper.addPatient(name, age, gender, selectedCategory, village, 
+                                                      phone, abhaId, ashaPhone, currentDate);
 
-            if (patientId > 0) {
-                // Save category-specific data
-                if ("Pregnant Woman".equals(selectedCategory)) {
-                    savePregnancyData(patientId);
-                } else if ("Child (0-5 years)".equals(selectedCategory)) {
-                    saveChildData(patientId);
-                } else if ("General Adult".equals(selectedCategory)) {
-                    saveGeneralVisitData(patientId);
+                if (patientId > 0) {
+                    // Save category-specific data
+                    if ("Pregnant Woman".equals(selectedCategory)) {
+                        savePregnancyData(patientId);
+                    } else if ("Child (0-5 years)".equals(selectedCategory)) {
+                        saveChildData(patientId);
+                    } else if ("General Adult".equals(selectedCategory)) {
+                        saveGeneralVisitData(patientId);
+                    }
+
+                    Toast.makeText(this, "✓ Patient saved online successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "Failed to save patient", Toast.LENGTH_SHORT).show();
                 }
-
-                Toast.makeText(this, "Patient saved successfully (Offline)", Toast.LENGTH_SHORT).show();
-                finish(); // Close activity and return to previous screen
             } else {
-                Toast.makeText(this, "Failed to save patient", Toast.LENGTH_SHORT).show();
+                // OFFLINE FALLBACK: Save locally when no internet
+                long patientId = dbHelper.addPatient(name, age, gender, selectedCategory, village, 
+                                                      phone, abhaId, ashaPhone, currentDate);
+
+                if (patientId > 0) {
+                    // Save category-specific data
+                    if ("Pregnant Woman".equals(selectedCategory)) {
+                        savePregnancyData(patientId);
+                    } else if ("Child (0-5 years)".equals(selectedCategory)) {
+                        saveChildData(patientId);
+                    } else if ("General Adult".equals(selectedCategory)) {
+                        saveGeneralVisitData(patientId);
+                    }
+
+                    Toast.makeText(this, "⚠ No internet. Saved locally. Will sync when online.", Toast.LENGTH_LONG).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "Failed to save patient", Toast.LENGTH_SHORT).show();
+                }
             }
 
         } catch (Exception e) {

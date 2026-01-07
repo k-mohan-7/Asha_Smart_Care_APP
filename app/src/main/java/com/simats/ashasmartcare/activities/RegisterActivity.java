@@ -195,28 +195,25 @@ public class RegisterActivity extends AppCompatActivity {
                                      String workerId, String state, String district, String area) {
         showLoading(true);
 
-        // Always save locally first
-        long localId = dbHelper.insertUser(name, email, phone, password, workerId, state, district, area);
-
-        if (localId > 0) {
-            // Check if network is available
-            if (NetworkUtils.isNetworkAvailable(this)) {
-                // Register online
-                registerOnline(name, email, phone, password, workerId, state, district, area, localId);
-            } else {
-                // Offline registration success
-                showLoading(false);
-                Toast.makeText(this, "Account created locally. Will sync when online.", Toast.LENGTH_LONG).show();
-                navigateToLogin();
-            }
+        // ONLINE-FIRST: Try API registration first
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            // Register online directly
+            registerOnline(name, email, phone, password, workerId, state, district, area);
         } else {
+            // OFFLINE FALLBACK: Save locally only if no internet
+            long localId = dbHelper.insertUser(name, email, phone, password, workerId, state, district, area);
             showLoading(false);
-            Toast.makeText(this, "Error creating account", Toast.LENGTH_SHORT).show();
+            if (localId > 0) {
+                Toast.makeText(this, "No internet. Account saved locally. Will sync when online.", Toast.LENGTH_LONG).show();
+                navigateToLogin();
+            } else {
+                Toast.makeText(this, "Error creating account", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     private void registerOnline(String name, String email, String phone, String password,
-                               String workerId, String state, String district, String area, long localId) {
+                               String workerId, String state, String district, String area) {
         apiHelper.register(name, email, phone, password, workerId, state, district, area,
                 new ApiHelper.ApiCallback() {
                     @Override
@@ -224,26 +221,51 @@ public class RegisterActivity extends AppCompatActivity {
                         showLoading(false);
                         try {
                             boolean success = response.getBoolean("success");
+                            String message = response.optString("message", "");
+                            
                             if (success) {
-                                Toast.makeText(RegisterActivity.this, "Account created successfully!", Toast.LENGTH_SHORT).show();
+                                // Online registration successful - data stored in server
+                                if (message.contains("pending") || message.contains("approval")) {
+                                    Toast.makeText(RegisterActivity.this, 
+                                            "✓ Registered online. Please wait for admin approval.", 
+                                            Toast.LENGTH_LONG).show();
+                                } else {
+                                    Toast.makeText(RegisterActivity.this, 
+                                            "✓ Account created online successfully!", 
+                                            Toast.LENGTH_SHORT).show();
+                                }
                                 navigateToLogin();
                             } else {
-                                String message = response.optString("message", "Registration failed");
                                 Toast.makeText(RegisterActivity.this, message, Toast.LENGTH_SHORT).show();
                             }
                         } catch (JSONException e) {
-                            Toast.makeText(RegisterActivity.this, "Account created locally", Toast.LENGTH_SHORT).show();
-                            navigateToLogin();
+                            Toast.makeText(RegisterActivity.this, "Error processing response", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onError(String errorMessage) {
                         showLoading(false);
-                        Toast.makeText(RegisterActivity.this, 
-                                "Account saved locally. Online sync failed: " + errorMessage, 
-                                Toast.LENGTH_LONG).show();
-                        navigateToLogin();
+                        // Network failed - fallback to local storage
+                        if (errorMessage.contains("409")) {
+                            Toast.makeText(RegisterActivity.this, 
+                                    "Phone number already registered. Please login.", 
+                                    Toast.LENGTH_LONG).show();
+                            navigateToLogin();
+                        } else {
+                            // Save locally as fallback
+                            long localId = dbHelper.insertUser(name, email, phone, password, workerId, state, district, area);
+                            if (localId > 0) {
+                                Toast.makeText(RegisterActivity.this, 
+                                        "Network error. Saved locally. Will sync when online.", 
+                                        Toast.LENGTH_LONG).show();
+                                navigateToLogin();
+                            } else {
+                                Toast.makeText(RegisterActivity.this, 
+                                        "Registration failed: " + errorMessage, 
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
                     }
                 });
     }

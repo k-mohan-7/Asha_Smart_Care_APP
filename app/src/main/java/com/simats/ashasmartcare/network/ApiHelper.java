@@ -159,10 +159,10 @@ public class ApiHelper {
             params.put("email", email);
             params.put("phone", phone);
             params.put("password", password);
-            params.put("worker_id", workerId);
+            params.put("location", workerId);  // Using workerId as location
             params.put("state", state);
             params.put("district", district);
-            params.put("area", area);
+            params.put("village", area);  // PHP expects village field
         } catch (JSONException e) {
             callback.onError("Error creating request");
             return;
@@ -472,6 +472,28 @@ public class ApiHelper {
         ));
 
         requestQueue.add(request);
+    }
+
+    /**
+     * Get admin dashboard statistics
+     */
+    public void getAdminDashboardStats(ApiCallback callback) {
+        String url = getBaseUrl() + Constants.API_ADMIN;
+        
+        // Get admin ID from session
+        SessionManager sessionManager = SessionManager.getInstance(context);
+        long adminId = sessionManager.getUserId();
+        
+        JSONObject params = new JSONObject();
+        try {
+            params.put("action", "dashboard");
+            params.put("admin_id", adminId);
+        } catch (JSONException e) {
+            callback.onError("Error creating request");
+            return;
+        }
+        
+        makePostRequest(url, params, callback);
     }
 
     /**

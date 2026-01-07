@@ -108,7 +108,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="@android:color/white">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -119,9 +120,19 @@
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvTotalWorkers"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#111827"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="ASHA Workers"
                             android:textColor="#374151"
                             android:textSize="14sp"
@@ -144,7 +155,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="@android:color/white">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -155,9 +167,19 @@
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvTotalPatients"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#111827"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="Patients"
                             android:textColor="#374151"
                             android:textSize="14sp"
@@ -180,7 +202,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="@android:color/white">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -191,9 +214,19 @@
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvHighRiskCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#111827"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="High-Risk Cases"
                             android:textColor="#374151"
                             android:textSize="14sp"
@@ -216,7 +249,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="@android:color/white">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -227,10 +261,20 @@
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvPendingRequests"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Pending Sync"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#111827"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Pending Requests"
                             android:textColor="#374151"
                             android:textSize="14sp"
                             android:textStyle="normal" />

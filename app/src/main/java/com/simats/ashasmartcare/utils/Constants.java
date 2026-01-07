@@ -6,11 +6,12 @@ package com.simats.ashasmartcare.utils;
 public class Constants {
 
     // API Base URL - update with your server IP
-    public static final String API_BASE_URL = "http://10.190.92.63/asha_api/";  // Your local network IP
+    public static final String API_BASE_URL = "http://10.139.130.64/asha_api/";  // Your local network IP
 
     // API Endpoints
     public static final String API_LOGIN = "auth.php";
     public static final String API_REGISTER = "auth.php";
+    public static final String API_ADMIN = "admin.php";
     public static final String API_PATIENTS = "patients.php";
     public static final String API_PREGNANCY_VISITS = "pregnancy_visits.php";
     public static final String API_CHILD_GROWTH = "child_growth.php";

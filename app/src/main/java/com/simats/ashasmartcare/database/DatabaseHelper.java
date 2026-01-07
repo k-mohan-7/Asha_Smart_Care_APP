@@ -24,7 +24,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Info
-    private static final String DATABASE_NAME = "asha_healthcare.db";
+    private static final String DATABASE_NAME = "asha_smartcare.db";
     private static final int DATABASE_VERSION = 2;
 
     // Sync Status Constants
@@ -1052,6 +1052,50 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             count += cursor.getInt(0);
         cursor.close();
 
+        return count;
+    }
+    
+    /**
+     * Get total sync records count
+     */
+    public int getTotalSyncRecords() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int count = 0;
+        
+        // Count all records across tables
+        String[] tables = {TABLE_PATIENTS, TABLE_PREGNANCY_VISITS, TABLE_CHILD_GROWTH, 
+                          TABLE_VACCINATIONS, TABLE_VISITS};
+        
+        for (String table : tables) {
+            Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + table, null);
+            if (cursor.moveToFirst()) {
+                count += cursor.getInt(0);
+            }
+            cursor.close();
+        }
+        
+        return count;
+    }
+    
+    /**
+     * Get synced records count
+     */
+    public int getSyncedRecordsCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int count = 0;
+        
+        String[] tables = {TABLE_PATIENTS, TABLE_PREGNANCY_VISITS, TABLE_CHILD_GROWTH, 
+                          TABLE_VACCINATIONS, TABLE_VISITS};
+        
+        for (String table : tables) {
+            Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + table + 
+                " WHERE " + COL_SYNC_STATUS + " = ?", new String[]{SYNC_SYNCED});
+            if (cursor.moveToFirst()) {
+                count += cursor.getInt(0);
+            }
+            cursor.close();
+        }
+        
         return count;
     }
 

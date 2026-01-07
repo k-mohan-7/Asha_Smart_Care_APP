@@ -21,6 +21,8 @@ public class SessionManager {
     private static final String KEY_USER_STATE = "userState";
     private static final String KEY_USER_DISTRICT = "userDistrict";
     private static final String KEY_USER_AREA = "userArea";
+    private static final String KEY_USER_ROLE = "userRole";
+    private static final String KEY_IS_ADMIN = "isAdmin";
     private static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
     private static final String KEY_API_BASE_URL = "apiBaseUrl";
 
@@ -49,6 +51,8 @@ public class SessionManager {
     public void createLoginSession(long userId, String name, String phone, String email,
                                    String workerId, String state, String district, String area) {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
+        editor.putBoolean(KEY_IS_ADMIN, false);
+        editor.putString(KEY_USER_ROLE, "asha_worker");
         editor.putLong(KEY_USER_ID, userId);
         editor.putString(KEY_USER_NAME, name);
         editor.putString(KEY_USER_PHONE, phone);
@@ -61,10 +65,42 @@ public class SessionManager {
     }
 
     /**
+     * Create admin session
+     */
+    public void createAdminSession(long userId, String name, String phone, String email) {
+        editor.putBoolean(KEY_IS_LOGGED_IN, true);
+        editor.putBoolean(KEY_IS_ADMIN, true);
+        editor.putString(KEY_USER_ROLE, "admin");
+        editor.putLong(KEY_USER_ID, userId);
+        editor.putString(KEY_USER_NAME, name);
+        editor.putString(KEY_USER_PHONE, phone);
+        editor.putString(KEY_USER_EMAIL, email);
+        editor.putString(KEY_WORKER_ID, "");
+        editor.putString(KEY_USER_STATE, "");
+        editor.putString(KEY_USER_DISTRICT, "");
+        editor.putString(KEY_USER_AREA, "");
+        editor.apply();
+    }
+
+    /**
      * Check if user is logged in
      */
     public boolean isLoggedIn() {
         return pref.getBoolean(KEY_IS_LOGGED_IN, false);
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public boolean isAdmin() {
+        return pref.getBoolean(KEY_IS_ADMIN, false);
+    }
+
+    /**
+     * Get user role
+     */
+    public String getUserRole() {
+        return pref.getString(KEY_USER_ROLE, "asha_worker");
     }
 
     /**
@@ -165,7 +201,6 @@ public class SessionManager {
     }
 
     public String getApiBaseUrl() {
-        // Default URL for Android Emulator to access localhost
-        return pref.getString(KEY_API_BASE_URL, "http://10.190.92.63/asha_api/");
+        return pref.getString(KEY_API_BASE_URL, "http://10.139.130.64/asha_api/");
     }
 }

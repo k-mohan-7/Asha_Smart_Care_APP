@@ -75,17 +75,28 @@ public class SyncStatusActivity extends AppCompatActivity {
     }
 
     private void loadSampleData() {
-        // Sample data matching the design
-        workerList.add(new SyncWorker("Anjali Mehta", 12, "2d ago", true));
-        workerList.add(new SyncWorker("Sunita Devi", 8, "1d ago", true));
-        workerList.add(new SyncWorker("Priya Sharma", 0, "2m ago", false));
-        workerList.add(new SyncWorker("Rina Kumar", 0, "5m ago", false));
-        workerList.add(new SyncWorker("Geeta Singh", 0, "12m ago", false));
+        // Load REAL data from database - removed dummy data
+        workerList.clear();
+        
+        // Get actual sync records from database
+        com.simats.ashasmartcare.database.DatabaseHelper dbHelper = 
+            com.simats.ashasmartcare.database.DatabaseHelper.getInstance(this);
+        
+        int totalRecords = dbHelper.getTotalSyncRecords();
+        int syncedRecords = dbHelper.getSyncedRecordsCount();
+        int pendingRecords = dbHelper.getTotalPendingRecords();
+        
+        // Update stats with REAL data
+        tvTotalAshas.setText(String.valueOf(totalRecords));
+        tvSynced.setText(String.valueOf(syncedRecords));
+        tvDelayed.setText(String.valueOf(pendingRecords));
 
-        // Update stats
-        tvTotalAshas.setText("150");
-        tvSynced.setText("148");
-        tvDelayed.setText("2");
+        // Show message if no data
+        if (totalRecords == 0) {
+            tvTotalAshas.setText("0");
+            tvSynced.setText("0");
+            tvDelayed.setText("0");
+        }
 
         workerAdapter.setData(workerList);
     }

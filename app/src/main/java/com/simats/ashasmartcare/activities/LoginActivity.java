@@ -178,6 +178,31 @@ public class LoginActivity extends AppCompatActivity {
                         // API returns user data in "data" field, not "user"
                         JSONObject user = response.has("data") ? response.getJSONObject("data") : response.getJSONObject("user");
                         
+                        // Check role and account status
+                        String role = user.optString("role", "asha_worker");
+                        String accountStatus = user.optString("account_status", "approved");
+                        
+                        // Check if account is pending or rejected
+                        if ("pending".equals(accountStatus)) {
+                            Toast.makeText(LoginActivity.this, 
+                                    "Your account is pending admin approval. Please wait for approval.", 
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        } else if ("rejected".equals(accountStatus)) {
+                            Toast.makeText(LoginActivity.this, 
+                                    "Your account request was rejected. Please contact admin.", 
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        
+                        // Only ASHA workers should login here, admins use AdminLoginActivity
+                        if ("admin".equals(role)) {
+                            Toast.makeText(LoginActivity.this, 
+                                    "Admin users should use Admin Login", 
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        
                         // Save user session with server data
                         sessionManager.createLoginSession(
                                 user.optLong("id", 0),
@@ -197,7 +222,7 @@ public class LoginActivity extends AppCompatActivity {
                         navigateToHome();
                     } else {
                         String message = response.optString("message", "Login failed");
-                        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
                         
                         // Try offline login as fallback
                         loginOffline(phoneOrWorkerId, password);

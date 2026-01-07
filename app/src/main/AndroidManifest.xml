@@ -86,6 +86,11 @@
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Patient Activities -->
         <activity
+            android:name=".PatientsActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
             android:name=".PatientListActivity"
             android:exported="false"
             android:parentActivityName=".activities.HomeActivity"
@@ -99,6 +104,21 @@
             android:name=".PatientProfileActivity"
             android:exported="false"
             android:parentActivityName=".PatientListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".PregnancyDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".PregnancyListActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".EditProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".ProfileActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".utils.AddChildVisitActivity"
+            android:exported="false"
+            android:parentActivityName=".ChildGrowthListActivity"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Pregnancy Activities -->
         <activity
             android:name=".PregnancyListActivity"

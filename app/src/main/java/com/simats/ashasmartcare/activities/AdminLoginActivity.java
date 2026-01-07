@@ -19,7 +19,12 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.simats.ashasmartcare.BuildConfig;
 import com.simats.ashasmartcare.R;
+import com.simats.ashasmartcare.network.ApiHelper;
 import com.simats.ashasmartcare.utils.NetworkUtils;
+import com.simats.ashasmartcare.utils.SessionManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Admin Login Activity
@@ -33,6 +38,9 @@ public class AdminLoginActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView tvVersion;
     private boolean isPasswordVisible = false;
+
+    private ApiHelper apiHelper;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +65,8 @@ public class AdminLoginActivity extends AppCompatActivity {
         ivTogglePassword = findViewById(R.id.iv_toggle_password);
         progressBar = findViewById(R.id.progress_bar);
         tvVersion = findViewById(R.id.tv_version);
-
+        apiHelper = ApiHelper.getInstance(this);
+        sessionManager = SessionManager.getInstance(this);
         String versionName = BuildConfig.VERSION_NAME;
         tvVersion.setText("v" + (versionName != null ? versionName : "1.0.0") + " • ASHA SmartCare Systems");
     }
@@ -112,35 +121,60 @@ public class AdminLoginActivity extends AppCompatActivity {
     private void performLogin(String username, String password) {
         showLoading(true);
 
-        // Simulation of Admin Login
-        new android.os.Handler().postDelayed(() -> {
+        // Check network availability
+        if (!NetworkUtils.isNetworkAvailable(this)) {
             showLoading(false);
-            if (NetworkUtils.isNetworkAvailable(this)) {
-                // For now, accept any non-empty credentials or implemented mock check
-                if (username.equalsIgnoreCase("admin")) {
-                    // Success
-                    Toast.makeText(AdminLoginActivity.this, "Admin Login Successful", Toast.LENGTH_SHORT).show();
-                    // Navigate to Admin Dashboard (Not created yet, so maybe HomeActivity for now
-                    // or stay here)
-                    // Currently we don't have an AdminDashboard, so we will toast and maybe go to
-                    // HomeActivity
-                    // or assume the HomeActivity handles Admin too.
-                    // Let's go to HomeActivity for now.
-                    // Navigate to Admin Dashboard
-                    Intent intent = new Intent(AdminLoginActivity.this, AdminDashboardActivity.class);
-                    // Pass admin flag if needed
-                    intent.putExtra("IS_ADMIN", true);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(AdminLoginActivity.this, "Invalid Admin Credentials", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Network unavailable. Admin login requires internet.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Use phone number for login (admin phone: 1234567890)
+        apiHelper.login(username, password, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                showLoading(false);
+                try {
+                    boolean success = response.getBoolean("success");
+                    if (success) {
+                        JSONObject user = response.has("data") ? response.getJSONObject("data") : response.getJSONObject("user");
+                        String role = user.optString("role", "");
+                        
+                        // Verify it's an admin account
+                        if (!"admin".equals(role)) {
+                            Toast.makeText(AdminLoginActivity.this, "Access denied. Admin credentials required.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        // Save admin session
+                        sessionManager.createAdminSession(
+                                user.optLong("id", 0),
+                                user.optString("name", ""),
+                                user.optString("phone", ""),
+                                user.optString("email", "")
+                        );
+
+                        Toast.makeText(AdminLoginActivity.this, "Admin Login Successful", Toast.LENGTH_SHORT).show();
+                        
+                        // Navigate to Admin Dashboard
+                        Intent intent = new Intent(AdminLoginActivity.this, AdminDashboardActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        String message = response.optString("message", "Invalid Admin Credentials");
+                        Toast.makeText(AdminLoginActivity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    Toast.makeText(AdminLoginActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                Toast.makeText(AdminLoginActivity.this, "Network unavailable. Admin login requires internet.",
-                        Toast.LENGTH_SHORT).show();
             }
-        }, 1500);
+
+            @Override
+            public void onError(String errorMessage) {
+                showLoading(false);
+                Toast.makeText(AdminLoginActivity.this, "Login failed: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showLoading(boolean show) {

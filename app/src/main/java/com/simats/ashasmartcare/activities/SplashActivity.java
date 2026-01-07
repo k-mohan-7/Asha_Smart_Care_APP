@@ -140,10 +140,16 @@ public class SplashActivity extends AppCompatActivity {
 
                 Intent intent;
                 if (sessionManager.isLoggedIn()) {
-                    // Go to Home
-                    intent = new Intent(SplashActivity.this, HomeActivity.class);
+                    // Check if admin or worker
+                    if (sessionManager.isAdmin()) {
+                        // Go to Admin Dashboard
+                        intent = new Intent(SplashActivity.this, AdminDashboardActivity.class);
+                    } else {
+                        // Go to Worker Home
+                        intent = new Intent(SplashActivity.this, HomeActivity.class);
+                    }
                 } else {
-                    // Go to Welcome Screen
+                    // Go to Welcome Screen (role selection)
                     intent = new Intent(SplashActivity.this, WelcomeActivity.class);
                 }
 
