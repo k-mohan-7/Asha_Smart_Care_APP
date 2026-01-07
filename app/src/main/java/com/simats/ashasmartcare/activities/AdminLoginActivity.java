@@ -126,8 +126,9 @@ public class AdminLoginActivity extends AppCompatActivity {
                     // HomeActivity
                     // or assume the HomeActivity handles Admin too.
                     // Let's go to HomeActivity for now.
-                    Intent intent = new Intent(AdminLoginActivity.this, HomeActivity.class);
-                    // Pass admin flag?
+                    // Navigate to Admin Dashboard
+                    Intent intent = new Intent(AdminLoginActivity.this, AdminDashboardActivity.class);
+                    // Pass admin flag if needed
                     intent.putExtra("IS_ADMIN", true);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);

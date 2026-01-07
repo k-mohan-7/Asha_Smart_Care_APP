@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.simats.ashasmartcare"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.simats.ashasmartcare"
@@ -31,6 +31,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

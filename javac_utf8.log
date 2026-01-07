@@ -1,0 +1,580 @@
+﻿> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+
+> Task :app:compileDebugJavaWithJavac
+.\gradlew.bat : C:\Use
+rs\SSD\AndroidStudioPr
+ojects\ASHASmartCare\a
+pp\src\main\java\com\s
+imats\ashasmartcare\ac
+tivities\AdminLoginAct
+ivity.java:20: error: 
+cannot find symbol
+At line:1 char:1
++ .\gradlew.bat :app:c
+ompileDebugJavaWithJav
+ac > javac.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (C:\Users\S   
+ SD\An...not find     
+symbol:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+import com.simats.asha
+smartcare.BuildConfig;
+                      
+         ^
+  symbol:   class 
+BuildConfig
+  location: package co
+m.simats.ashasmartcare
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\activities\Welcome
+Activity.java:13: 
+error: cannot find 
+symbol
+import com.simats.asha
+smartcare.BuildConfig;
+                      
+         ^
+  symbol:   class 
+BuildConfig
+  location: package co
+m.simats.ashasmartcare
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:21: 
+error: cannot find 
+symbol
+    VisitAdapter 
+visitAdapter;
+    ^
+  symbol:   class 
+VisitAdapter
+  location: class 
+AddChildVisitActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:22: 
+error: cannot find 
+symbol
+    List<VisitModel> 
+visitList;
+         ^
+  symbol:   class 
+VisitModel
+  location: class 
+AddChildVisitActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\activities\AdminLo
+ginActivity.java:61: 
+error: cannot find 
+symbol
+        String 
+versionName = BuildCon
+fig.VERSION_NAME;
+                      
+       ^
+  symbol:   variable 
+BuildConfig
+  location: class 
+AdminLoginActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\activities\Welcome
+Activity.java:44: 
+error: cannot find 
+symbol
+        String 
+versionName = BuildCon
+fig.VERSION_NAME;
+                      
+       ^
+  symbol:   variable 
+BuildConfig
+  location: class 
+WelcomeActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:35: 
+error: cannot find 
+symbol
+        Toolbar 
+toolbar = findViewById
+(R.id.toolbar);
+                      
+                     ^
+  symbol:   variable 
+toolbar
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:38: 
+error: cannot find 
+symbol
+        ImageView 
+backBtn = findViewById
+(R.id.btnBack);
+                      
+                      
+ ^
+  symbol:   variable 
+btnBack
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:45: 
+error: cannot find 
+symbol
+        recyclerView 
+= findViewById(R.id.rv
+Visits);
+                      
+                  ^
+  symbol:   variable 
+rvVisits
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:49: 
+error: cannot find 
+symbol
+        visitAdapter 
+= new VisitAdapter(vis
+itList);
+                      
+     ^
+  symbol:   class 
+VisitAdapter
+  location: class 
+AddChildVisitActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:55: 
+error: cannot find 
+symbol
+        
+visitList.add(new 
+VisitModel(
+                      
+    ^
+  symbol:   class 
+VisitModel
+  location: class 
+AddChildVisitActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:61: 
+error: cannot find 
+symbol
+        
+visitList.add(new 
+VisitModel(
+                      
+    ^
+  symbol:   class 
+VisitModel
+  location: class 
+AddChildVisitActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:67: 
+error: cannot find 
+symbol
+        
+visitList.add(new 
+VisitModel(
+                      
+    ^
+  symbol:   class 
+VisitModel
+  location: class 
+AddChildVisitActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:73: 
+error: cannot find 
+symbol
+        
+visitList.add(new 
+VisitModel(
+                      
+    ^
+  symbol:   class 
+VisitModel
+  location: class 
+AddChildVisitActivity
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\utils\AddChildVisi
+tActivity.java:79: 
+error: cannot find 
+symbol
+        
+visitList.add(new 
+VisitModel(
+                      
+    ^
+  symbol:   class 
+VisitModel
+  location: class 
+AddChildVisitActivity
+Note: Some input 
+files use or override 
+a deprecated API.
+Note: Recompile with 
+-Xlint:deprecation 
+for details.
+15 errors
+
+> Task :app:compileDebugJavaWithJavac FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/SSD/AndroidStudioProjects/ASHASmartCare/build/reports/problems/problems-report.html
+
+FAILURE: Build failed 
+with an exception.
+
+* What went wrong:
+Execution failed for 
+task ':app:compileDebu
+gJavaWithJavac'.
+> Compilation failed; 
+see the compiler 
+output below.
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\activities\Admin
+LoginActivity.java:20:
+ error: cannot find 
+symbol
+  import com.simats.as
+hasmartcare.BuildConfi
+g;
+                      
+           ^
+    symbol:   class 
+BuildConfig
+    location: package 
+com.simats.ashasmartca
+re
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\activities\Welco
+meActivity.java:13: 
+error: cannot find 
+symbol
+  import com.simats.as
+hasmartcare.BuildConfi
+g;
+                      
+           ^
+    symbol:   class 
+BuildConfig
+    location: package 
+com.simats.ashasmartca
+re
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:21: 
+error: cannot find 
+symbol
+      VisitAdapter 
+visitAdapter;
+      ^
+    symbol:   class 
+VisitAdapter
+    location: class 
+AddChildVisitActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:22: 
+error: cannot find 
+symbol
+      
+List<VisitModel> 
+visitList;
+           ^
+    symbol:   class 
+VisitModel
+    location: class 
+AddChildVisitActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\activities\Admin
+LoginActivity.java:61:
+ error: cannot find 
+symbol
+          String 
+versionName = BuildCon
+fig.VERSION_NAME;
+                      
+         ^
+    symbol:   
+variable BuildConfig
+    location: class 
+AdminLoginActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\activities\Welco
+meActivity.java:44: 
+error: cannot find 
+symbol
+          String 
+versionName = BuildCon
+fig.VERSION_NAME;
+                      
+         ^
+    symbol:   
+variable BuildConfig
+    location: class 
+WelcomeActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:35: 
+error: cannot find 
+symbol
+          Toolbar 
+toolbar = findViewById
+(R.id.toolbar);
+                      
+                      
+ ^
+    symbol:   
+variable toolbar
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:38: 
+error: cannot find 
+symbol
+          ImageView 
+backBtn = findViewById
+(R.id.btnBack);
+                      
+                      
+   ^
+    symbol:   
+variable btnBack
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:45: 
+error: cannot find 
+symbol
+          
+recyclerView = findVie
+wById(R.id.rvVisits);
+                      
+                    ^
+    symbol:   
+variable rvVisits
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:49: 
+error: cannot find 
+symbol
+          
+visitAdapter = new Vis
+itAdapter(visitList);
+                      
+       ^
+    symbol:   class 
+VisitAdapter
+    location: class 
+AddChildVisitActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:55: 
+error: cannot find 
+symbol
+          
+visitList.add(new 
+VisitModel(
+                      
+      ^
+    symbol:   class 
+VisitModel
+    location: class 
+AddChildVisitActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:61: 
+error: cannot find 
+symbol
+          
+visitList.add(new 
+VisitModel(
+                      
+      ^
+    symbol:   class 
+VisitModel
+    location: class 
+AddChildVisitActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:67: 
+error: cannot find 
+symbol
+          
+visitList.add(new 
+VisitModel(
+                      
+      ^
+    symbol:   class 
+VisitModel
+    location: class 
+AddChildVisitActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:73: 
+error: cannot find 
+symbol
+          
+visitList.add(new 
+VisitModel(
+                      
+      ^
+    symbol:   class 
+VisitModel
+    location: class 
+AddChildVisitActivity
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\utils\AddChildVi
+sitActivity.java:79: 
+error: cannot find 
+symbol
+          
+visitList.add(new 
+VisitModel(
+                      
+      ^
+    symbol:   class 
+VisitModel
+    location: class 
+AddChildVisitActivity
+  Note: Some input 
+files use or override 
+a deprecated API.
+  Note: Recompile 
+with 
+-Xlint:deprecation 
+for details.
+  15 errors
+
+* Try:
+> Check your code and 
+dependencies to fix 
+the compilation 
+error(s)
+> Run with --scan to 
+get full insights.
+
+BUILD FAILED in 35s
+19 actionable tasks: 1 executed, 18 up-to-date

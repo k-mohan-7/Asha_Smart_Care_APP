@@ -17,10 +17,10 @@ import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.services.SyncService;
 import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.utils.SessionManager;
-import com.simats.ashasmartcare.PatientListActivity;
+import com.simats.ashasmartcare.PatientsActivity;
 import com.simats.ashasmartcare.VaccinationListActivity;
 import com.simats.ashasmartcare.VisitHistoryActivity;
-import com.simats.ashasmartcare.SyncStatusActivity;
+
 import com.simats.ashasmartcare.ProfileActivity;
 import com.simats.ashasmartcare.AIInsightsActivity;
 import com.simats.ashasmartcare.PatientAlertsActivity;
@@ -93,7 +93,7 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         cardPatients.setOnClickListener(v -> {
-            startActivity(new Intent(this, PatientListActivity.class));
+            startActivity(new Intent(this, PatientsActivity.class));
         });
 
         cardVaccinations.setOnClickListener(v -> {
@@ -116,27 +116,28 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(new Intent(this, SettingsActivity.class));
         });
 
-        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int id = item.getItemId();
-                
-                if (id == R.id.nav_home) {
-                    return true;
-                } else if (id == R.id.nav_profile) {
-                    startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
-                    return true;
-                } else if (id == R.id.nav_visits) {
-                    startActivity(new Intent(HomeActivity.this, VisitHistoryActivity.class));
-                    return true;
-                } else if (id == R.id.nav_alerts) {
-                    startActivity(new Intent(HomeActivity.this, PatientAlertsActivity.class));
-                    return true;
-                }
-                
-                return false;
-            }
-        });
+        bottomNavigation
+                .setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        int id = item.getItemId();
+
+                        if (id == R.id.nav_home) {
+                            return true;
+                        } else if (id == R.id.nav_profile) {
+                            startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
+                            return true;
+                        } else if (id == R.id.nav_visits) {
+                            startActivity(new Intent(HomeActivity.this, VisitHistoryActivity.class));
+                            return true;
+                        } else if (id == R.id.nav_alerts) {
+                            startActivity(new Intent(HomeActivity.this, PatientAlertsActivity.class));
+                            return true;
+                        }
+
+                        return false;
+                    }
+                });
 
         // Set home as selected
         bottomNavigation.setSelectedItemId(R.id.nav_home);
@@ -179,11 +180,11 @@ public class HomeActivity extends AppCompatActivity {
 
     private void checkOnlineMode() {
         boolean isOnline = NetworkUtils.isNetworkAvailable(this);
-        
+
         if (isOnline) {
             tvConnectionStatus.setText("Online");
             tvConnectionStatus.setTextColor(getResources().getColor(R.color.status_synced));
-            
+
             // Auto-sync if there are pending records
             int pendingCount = dbHelper.getTotalPendingRecords();
             if (pendingCount > 0) {
@@ -216,11 +217,11 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         Toast.makeText(this, "Syncing...", Toast.LENGTH_SHORT).show();
-        
+
         // Start sync service
         Intent syncIntent = new Intent(this, SyncService.class);
         startService(syncIntent);
-        
+
         // Navigate to sync status
         startActivity(new Intent(this, SyncStatusActivity.class));
     }

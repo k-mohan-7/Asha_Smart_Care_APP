@@ -16,6 +16,7 @@ import androidx.appcompat.widget.SwitchCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.simats.ashasmartcare.activities.HomeActivity;
+import com.simats.ashasmartcare.activities.SyncStatusActivity;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.services.SyncService;
 import com.simats.ashasmartcare.utils.NetworkUtils;
@@ -81,7 +82,7 @@ public class SettingsActivity extends AppCompatActivity {
             long lastSyncTime = sessionManager.getLastSyncTime();
             long diff = System.currentTimeMillis() - lastSyncTime;
             long minutes = diff / (60 * 1000);
-            
+
             if (minutes < 1) {
                 tvSyncTime.setText("Just now");
             } else if (minutes < 60) {
@@ -103,7 +104,8 @@ public class SettingsActivity extends AppCompatActivity {
         // Notification toggle
         switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
             prefs.edit().putBoolean("notifications_enabled", isChecked).apply();
-            Toast.makeText(this, isChecked ? "Notifications enabled" : "Notifications disabled", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, isChecked ? "Notifications enabled" : "Notifications disabled", Toast.LENGTH_SHORT)
+                    .show();
         });
 
         // Sync Now button
@@ -130,31 +132,32 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         // Bottom Navigation
-        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                
-                if (itemId == R.id.nav_home) {
-                    startActivity(new Intent(SettingsActivity.this, HomeActivity.class));
-                    finish();
-                    return true;
-                } else if (itemId == R.id.nav_profile) {
-                    startActivity(new Intent(SettingsActivity.this, ProfileActivity.class));
-                    finish();
-                    return true;
-                } else if (itemId == R.id.nav_visits) {
-                    startActivity(new Intent(SettingsActivity.this, VisitHistoryActivity.class));
-                    finish();
-                    return true;
-                } else if (itemId == R.id.nav_alerts) {
-                    startActivity(new Intent(SettingsActivity.this, PatientAlertsActivity.class));
-                    finish();
-                    return true;
-                }
-                return false;
-            }
-        });
+        bottomNavigation
+                .setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        int itemId = item.getItemId();
+
+                        if (itemId == R.id.nav_home) {
+                            startActivity(new Intent(SettingsActivity.this, HomeActivity.class));
+                            finish();
+                            return true;
+                        } else if (itemId == R.id.nav_profile) {
+                            startActivity(new Intent(SettingsActivity.this, ProfileActivity.class));
+                            finish();
+                            return true;
+                        } else if (itemId == R.id.nav_visits) {
+                            startActivity(new Intent(SettingsActivity.this, VisitHistoryActivity.class));
+                            finish();
+                            return true;
+                        } else if (itemId == R.id.nav_alerts) {
+                            startActivity(new Intent(SettingsActivity.this, PatientAlertsActivity.class));
+                            finish();
+                            return true;
+                        }
+                        return false;
+                    }
+                });
     }
 
     private void performSync() {
@@ -165,11 +168,11 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Show sync status activity
         startActivity(new Intent(this, SyncStatusActivity.class));
-        
+
         // Start sync service
         Intent syncIntent = new Intent(this, SyncService.class);
         startService(syncIntent);
-        
+
         Toast.makeText(this, "Syncing data...", Toast.LENGTH_SHORT).show();
     }
 
