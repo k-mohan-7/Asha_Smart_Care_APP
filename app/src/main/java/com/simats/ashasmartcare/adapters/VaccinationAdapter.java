@@ -4,8 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,6 +15,8 @@ import com.simats.ashasmartcare.R;
 import com.simats.ashasmartcare.models.Vaccination;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -25,10 +26,11 @@ public class VaccinationAdapter extends RecyclerView.Adapter<VaccinationAdapter.
     private List<Vaccination> vaccinationList;
     private OnVaccinationClickListener listener;
     private SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-    private SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+    private SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd", Locale.getDefault());
 
     public interface OnVaccinationClickListener {
         void onVaccinationClick(Vaccination vaccination);
+        void onMarkDoneClick(Vaccination vaccination);
     }
 
     public VaccinationAdapter(Context context, List<Vaccination> vaccinationList, OnVaccinationClickListener listener) {
@@ -48,81 +50,53 @@ public class VaccinationAdapter extends RecyclerView.Adapter<VaccinationAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Vaccination vaccination = vaccinationList.get(position);
 
+        // Set patient name (assuming it's available in the Vaccination model)
+        holder.tvPatientName.setText(vaccination.getPatientName() != null ? vaccination.getPatientName() : "Unknown Patient");
+        
+        // Set vaccine name
         holder.tvVaccineName.setText(vaccination.getVaccineName());
         
-        // Format and display scheduled date
-        String scheduledDate = vaccination.getScheduledDate();
-        if (scheduledDate != null && !scheduledDate.isEmpty()) {
+        // Format and display due date
+        String dueDate = vaccination.getScheduledDate();
+        if (dueDate != null && !dueDate.isEmpty()) {
             try {
-                holder.tvScheduledDate.setText("Scheduled: " + outputFormat.format(inputFormat.parse(scheduledDate)));
+                Date date = inputFormat.parse(dueDate);
+                holder.tvDueDate.setText("Due: " + outputFormat.format(date));
             } catch (Exception e) {
-                holder.tvScheduledDate.setText("Scheduled: " + scheduledDate);
+                holder.tvDueDate.setText("Due: " + dueDate);
             }
         } else {
-            holder.tvScheduledDate.setText("Scheduled: N/A");
+            holder.tvDueDate.setText("Due: N/A");
         }
 
-        // Display given date if available
-        String givenDate = vaccination.getGivenDate();
-        if (givenDate != null && !givenDate.isEmpty()) {
-            try {
-                holder.tvGivenDate.setText("Given: " + outputFormat.format(inputFormat.parse(givenDate)));
-                holder.tvGivenDate.setVisibility(View.VISIBLE);
-            } catch (Exception e) {
-                holder.tvGivenDate.setText("Given: " + givenDate);
-                holder.tvGivenDate.setVisibility(View.VISIBLE);
-            }
-        } else {
-            holder.tvGivenDate.setVisibility(View.GONE);
-        }
-
-        // Set status with color
-        String status = vaccination.getStatus();
-        holder.tvStatus.setText(status);
+        // Calculate and set status
+        String status = calculateStatus(dueDate);
+        holder.tvStatusBadge.setText(status);
         
+        // Set status badge background and text color
         switch (status) {
-            case "Given":
-                holder.tvStatus.setBackgroundResource(R.drawable.bg_status_given);
-                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.white));
-                holder.ivStatusIcon.setImageResource(R.drawable.ic_check);
-                holder.ivStatusIcon.setColorFilter(ContextCompat.getColor(context, R.color.success));
+            case "overdue":
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_risk);
+                holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark));
                 break;
-            case "Scheduled":
-                holder.tvStatus.setBackgroundResource(R.drawable.bg_status_scheduled);
-                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.white));
-                holder.ivStatusIcon.setImageResource(R.drawable.ic_schedule);
-                holder.ivStatusIcon.setColorFilter(ContextCompat.getColor(context, R.color.info));
+            case "due soon":
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_pending);
+                holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, android.R.color.holo_orange_dark));
                 break;
-            case "Missed":
-                holder.tvStatus.setBackgroundResource(R.drawable.bg_status_missed);
-                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.white));
-                holder.ivStatusIcon.setImageResource(R.drawable.ic_warning);
-                holder.ivStatusIcon.setColorFilter(ContextCompat.getColor(context, R.color.error));
-                break;
-            case "Delayed":
-                holder.tvStatus.setBackgroundResource(R.drawable.bg_status_delayed);
-                holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.white));
-                holder.ivStatusIcon.setImageResource(R.drawable.ic_warning);
-                holder.ivStatusIcon.setColorFilter(ContextCompat.getColor(context, R.color.warning));
+            case "upcoming":
+                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_category);
+                holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, android.R.color.holo_blue_dark));
                 break;
         }
 
-        // Batch number
-        String batch = vaccination.getBatchNumber();
-        if (batch != null && !batch.isEmpty()) {
-            holder.tvBatchNumber.setText("Batch: " + batch);
-            holder.tvBatchNumber.setVisibility(View.VISIBLE);
-        } else {
-            holder.tvBatchNumber.setVisibility(View.GONE);
-        }
+        // Mark Done button click
+        holder.btnMarkDone.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onMarkDoneClick(vaccination);
+            }
+        });
 
-        // Sync status indicator
-        if ("PENDING".equals(vaccination.getSyncStatus())) {
-            holder.ivSyncStatus.setVisibility(View.VISIBLE);
-        } else {
-            holder.ivSyncStatus.setVisibility(View.GONE);
-        }
-
+        // Card click
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onVaccinationClick(vaccination);
@@ -130,26 +104,52 @@ public class VaccinationAdapter extends RecyclerView.Adapter<VaccinationAdapter.
         });
     }
 
+    private String calculateStatus(String dueDate) {
+        if (dueDate == null || dueDate.isEmpty()) {
+            return "upcoming";
+        }
+        
+        try {
+            Date due = inputFormat.parse(dueDate);
+            Date today = new Date();
+            
+            // Calculate difference in days
+            long diff = due.getTime() - today.getTime();
+            long daysDiff = diff / (1000 * 60 * 60 * 24);
+            
+            if (daysDiff < 0) {
+                return "overdue";
+            } else if (daysDiff <= 7) {
+                return "due soon";
+            } else {
+                return "upcoming";
+            }
+        } catch (Exception e) {
+            return "upcoming";
+        }
+    }
+
     @Override
     public int getItemCount() {
         return vaccinationList.size();
     }
 
+    public void updateList(List<Vaccination> newList) {
+        this.vaccinationList = newList;
+        notifyDataSetChanged();
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivStatusIcon, ivSyncStatus;
-        TextView tvVaccineName, tvScheduledDate, tvGivenDate, tvStatus, tvBatchNumber;
-        LinearLayout layoutDates;
+        TextView tvPatientName, tvVaccineName, tvDueDate, tvStatusBadge;
+        Button btnMarkDone;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivStatusIcon = itemView.findViewById(R.id.ivStatusIcon);
-            ivSyncStatus = itemView.findViewById(R.id.ivSyncStatus);
-            tvVaccineName = itemView.findViewById(R.id.tvVaccineName);
-            tvScheduledDate = itemView.findViewById(R.id.tvScheduledDate);
-            tvGivenDate = itemView.findViewById(R.id.tvGivenDate);
-            tvStatus = itemView.findViewById(R.id.tvStatus);
-            tvBatchNumber = itemView.findViewById(R.id.tvBatchNumber);
-            layoutDates = itemView.findViewById(R.id.layoutDates);
+            tvPatientName = itemView.findViewById(R.id.tv_patient_name);
+            tvVaccineName = itemView.findViewById(R.id.tv_vaccine_name);
+            tvDueDate = itemView.findViewById(R.id.tv_due_date);
+            tvStatusBadge = itemView.findViewById(R.id.tv_status_badge);
+            btnMarkDone = itemView.findViewById(R.id.btn_mark_done);
         }
     }
 }

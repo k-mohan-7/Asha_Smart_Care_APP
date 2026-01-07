@@ -47,8 +47,8 @@ public class VisitAdapter extends RecyclerView.Adapter<VisitAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Visit visit = visitList.get(position);
 
-        holder.tvVisitType.setText(visit.getVisitType());
-        holder.tvPurpose.setText(visit.getPurpose());
+        holder.tvVisitTitle.setText(visit.getVisitType());
+        holder.tvVisitStatus.setText("Completed");
 
         // Format visit date
         String visitDate = visit.getVisitDate();
@@ -60,20 +60,6 @@ public class VisitAdapter extends RecyclerView.Adapter<VisitAdapter.ViewHolder> 
             }
         } else {
             holder.tvVisitDate.setText("N/A");
-        }
-
-        // Format next visit date
-        String nextVisitDate = visit.getNextVisitDate();
-        if (nextVisitDate != null && !nextVisitDate.isEmpty()) {
-            try {
-                holder.tvNextVisit.setText("Next: " + outputFormat.format(inputFormat.parse(nextVisitDate)));
-                holder.tvNextVisit.setVisibility(View.VISIBLE);
-            } catch (Exception e) {
-                holder.tvNextVisit.setText("Next: " + nextVisitDate);
-                holder.tvNextVisit.setVisibility(View.VISIBLE);
-            }
-        } else {
-            holder.tvNextVisit.setVisibility(View.GONE);
         }
 
         // Set icon based on visit type
@@ -105,22 +91,6 @@ public class VisitAdapter extends RecyclerView.Adapter<VisitAdapter.ViewHolder> 
                 break;
         }
 
-        // Show findings preview
-        String findings = visit.getFindings();
-        if (findings != null && !findings.isEmpty()) {
-            holder.tvFindings.setText(findings.length() > 100 ? findings.substring(0, 100) + "..." : findings);
-            holder.tvFindings.setVisibility(View.VISIBLE);
-        } else {
-            holder.tvFindings.setVisibility(View.GONE);
-        }
-
-        // Sync status indicator
-        if ("PENDING".equals(visit.getSyncStatus())) {
-            holder.ivSyncStatus.setVisibility(View.VISIBLE);
-        } else {
-            holder.ivSyncStatus.setVisibility(View.GONE);
-        }
-
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onVisitClick(visit);
@@ -134,18 +104,15 @@ public class VisitAdapter extends RecyclerView.Adapter<VisitAdapter.ViewHolder> 
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivVisitIcon, ivSyncStatus;
-        TextView tvVisitType, tvVisitDate, tvPurpose, tvFindings, tvNextVisit;
+        ImageView ivVisitIcon;
+        TextView tvVisitTitle, tvVisitDate, tvVisitStatus;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivVisitIcon = itemView.findViewById(R.id.ivVisitIcon);
-            ivSyncStatus = itemView.findViewById(R.id.ivSyncStatus);
-            tvVisitType = itemView.findViewById(R.id.tvVisitType);
-            tvVisitDate = itemView.findViewById(R.id.tvVisitDate);
-            tvPurpose = itemView.findViewById(R.id.tvPurpose);
-            tvFindings = itemView.findViewById(R.id.tvFindings);
-            tvNextVisit = itemView.findViewById(R.id.tvNextVisit);
+            ivVisitIcon = itemView.findViewById(R.id.iv_visit_icon);
+            tvVisitTitle = itemView.findViewById(R.id.tv_visit_title);
+            tvVisitDate = itemView.findViewById(R.id.tv_visit_date);
+            tvVisitStatus = itemView.findViewById(R.id.tv_visit_status);
         }
     }
 }

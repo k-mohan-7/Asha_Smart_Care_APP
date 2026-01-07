@@ -2,47 +2,43 @@ package com.simats.ashasmartcare.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.simats.ashasmartcare.R;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.services.SyncService;
 import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.utils.SessionManager;
 import com.simats.ashasmartcare.PatientListActivity;
-import com.simats.ashasmartcare.PregnancyListActivity;
-import com.simats.ashasmartcare.ChildGrowthListActivity;
 import com.simats.ashasmartcare.VaccinationListActivity;
 import com.simats.ashasmartcare.VisitHistoryActivity;
 import com.simats.ashasmartcare.SyncStatusActivity;
 import com.simats.ashasmartcare.ProfileActivity;
 import com.simats.ashasmartcare.AIInsightsActivity;
 import com.simats.ashasmartcare.PatientAlertsActivity;
+import com.simats.ashasmartcare.AddPatientActivity;
+import com.simats.ashasmartcare.SettingsActivity;
 
 /**
  * Home Activity - Main Dashboard
- * Shows dashboard cards for navigation to different modules
+ * Modern UI with stats cards and navigation
  */
-public class HomeActivity extends AppCompatActivity implements View.OnClickListener {
+public class HomeActivity extends AppCompatActivity {
 
-    private TextView tvWelcome, tvLocation, tvSyncStatus, tvPendingCount;
-    private ImageView ivProfile;
-    private MaterialButton btnSyncNow;
-    
-    // Dashboard Cards
-    private CardView cardPatients, cardPregnancy, cardChildGrowth, cardVaccination;
-    private CardView cardHistory, cardSync, cardProfile, cardAIInsights;
-    private CardView cardAlerts;
-
-    private LinearLayout syncStatusBar;
+    private TextView tvUserName, tvVillage, tvConnectionStatus;
+    private TextView tvVisitsToday, tvHighRisk, tvPendingSync;
+    private CardView badgeConnection;
+    private CardView cardNewPatient, cardPatients, cardVaccinations;
+    private CardView cardAIInsights, cardSync, cardSettings;
+    private BottomNavigationView bottomNavigation;
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
@@ -56,33 +52,34 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         initHelpers();
         setupListeners();
         loadUserData();
+        checkOnlineMode();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        updateSyncStatus();
+        updateDashboard();
+        checkOnlineMode();
     }
 
     private void initViews() {
-        tvWelcome = findViewById(R.id.tv_welcome);
-        tvLocation = findViewById(R.id.tv_location);
-        tvSyncStatus = findViewById(R.id.tv_sync_status);
-        tvPendingCount = findViewById(R.id.tv_pending_count);
-        ivProfile = findViewById(R.id.iv_profile);
-        btnSyncNow = findViewById(R.id.btn_sync_now);
-        syncStatusBar = findViewById(R.id.sync_status_bar);
+        tvUserName = findViewById(R.id.tv_user_name);
+        tvVillage = findViewById(R.id.tv_village);
+        tvConnectionStatus = findViewById(R.id.tv_connection_status);
+        badgeConnection = findViewById(R.id.badge_connection);
 
-        // Dashboard Cards
+        tvVisitsToday = findViewById(R.id.tv_visits_today);
+        tvHighRisk = findViewById(R.id.tv_high_risk);
+        tvPendingSync = findViewById(R.id.tv_pending_sync);
+
+        cardNewPatient = findViewById(R.id.card_new_patient);
         cardPatients = findViewById(R.id.card_patients);
-        cardPregnancy = findViewById(R.id.card_pregnancy);
-        cardChildGrowth = findViewById(R.id.card_child_growth);
-        cardVaccination = findViewById(R.id.card_vaccination);
-        cardHistory = findViewById(R.id.card_history);
-        cardSync = findViewById(R.id.card_sync);
-        cardProfile = findViewById(R.id.card_profile);
+        cardVaccinations = findViewById(R.id.card_vaccinations);
         cardAIInsights = findViewById(R.id.card_ai_insights);
-        cardAlerts = findViewById(R.id.card_alerts);
+        cardSync = findViewById(R.id.card_sync);
+        cardSettings = findViewById(R.id.card_settings);
+
+        bottomNavigation = findViewById(R.id.bottom_navigation);
     }
 
     private void initHelpers() {
@@ -91,74 +88,134 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void setupListeners() {
-        cardPatients.setOnClickListener(this);
-        cardPregnancy.setOnClickListener(this);
-        cardChildGrowth.setOnClickListener(this);
-        cardVaccination.setOnClickListener(this);
-        cardHistory.setOnClickListener(this);
-        cardSync.setOnClickListener(this);
-        cardProfile.setOnClickListener(this);
-        cardAIInsights.setOnClickListener(this);
-        cardAlerts.setOnClickListener(this);
-        ivProfile.setOnClickListener(this);
-        
-        btnSyncNow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        cardNewPatient.setOnClickListener(v -> {
+            startActivity(new Intent(this, AddPatientActivity.class));
+        });
+
+        cardPatients.setOnClickListener(v -> {
+            startActivity(new Intent(this, PatientListActivity.class));
+        });
+
+        cardVaccinations.setOnClickListener(v -> {
+            startActivity(new Intent(this, VaccinationListActivity.class));
+        });
+
+        cardAIInsights.setOnClickListener(v -> {
+            startActivity(new Intent(this, AIInsightsActivity.class));
+        });
+
+        cardSync.setOnClickListener(v -> {
+            if (NetworkUtils.isNetworkAvailable(this)) {
                 performSync();
+            } else {
+                startActivity(new Intent(this, SyncStatusActivity.class));
             }
         });
+
+        cardSettings.setOnClickListener(v -> {
+            startActivity(new Intent(this, SettingsActivity.class));
+        });
+
+        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                
+                if (id == R.id.nav_home) {
+                    return true;
+                } else if (id == R.id.nav_profile) {
+                    startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
+                    return true;
+                } else if (id == R.id.nav_visits) {
+                    startActivity(new Intent(HomeActivity.this, VisitHistoryActivity.class));
+                    return true;
+                } else if (id == R.id.nav_alerts) {
+                    startActivity(new Intent(HomeActivity.this, PatientAlertsActivity.class));
+                    return true;
+                }
+                
+                return false;
+            }
+        });
+
+        // Set home as selected
+        bottomNavigation.setSelectedItemId(R.id.nav_home);
     }
 
     private void loadUserData() {
-        String userName = sessionManager.getUserName();
+        // Get user name from database (registered name)
+        String userName = dbHelper.getLoggedInUserName();
         if (userName != null && !userName.isEmpty()) {
-            tvWelcome.setText("Welcome, " + userName);
+            tvUserName.setText(userName);
         } else {
-            tvWelcome.setText(getString(R.string.welcome_asha));
+            // Fallback to session manager
+            userName = sessionManager.getUserName();
+            if (userName != null && !userName.isEmpty() && !userName.equals("ASHA Worker")) {
+                tvUserName.setText(userName);
+            } else {
+                tvUserName.setText("ASHA Worker");
+            }
         }
 
-        String location = sessionManager.getUserLocation();
-        if (location != null && !location.isEmpty()) {
-            tvLocation.setText(location);
+        // Get village/area from database first
+        String area = dbHelper.getLoggedInUserArea();
+        if (area != null && !area.isEmpty()) {
+            tvVillage.setText("Village: " + area);
         } else {
-            tvLocation.setText("Location not set");
+            // Fallback to session manager
+            area = sessionManager.getUserLocation();
+            if (area != null && !area.isEmpty()) {
+                tvVillage.setText("Village: " + area);
+            } else {
+                String district = sessionManager.getUserDistrict();
+                if (district != null && !district.isEmpty()) {
+                    tvVillage.setText("District: " + district);
+                } else {
+                    tvVillage.setText("Village: Not Set");
+                }
+            }
         }
     }
 
-    private void updateSyncStatus() {
-        int pendingCount = dbHelper.getTotalPendingRecords();
+    private void checkOnlineMode() {
+        boolean isOnline = NetworkUtils.isNetworkAvailable(this);
         
-        if (pendingCount > 0) {
-            syncStatusBar.setVisibility(View.VISIBLE);
-            tvPendingCount.setText(pendingCount + " records pending sync");
-            tvSyncStatus.setText(NetworkUtils.isNetworkAvailable(this) ? "Online" : "Offline");
-            tvSyncStatus.setTextColor(getResources().getColor(
-                    NetworkUtils.isNetworkAvailable(this) ? R.color.status_synced : R.color.status_pending));
+        if (isOnline) {
+            tvConnectionStatus.setText("Online");
+            tvConnectionStatus.setTextColor(getResources().getColor(R.color.status_synced));
+            
+            // Auto-sync if there are pending records
+            int pendingCount = dbHelper.getTotalPendingRecords();
+            if (pendingCount > 0) {
+                performSyncInBackground();
+            }
         } else {
-            syncStatusBar.setVisibility(View.GONE);
+            tvConnectionStatus.setText("Offline");
+            tvConnectionStatus.setTextColor(getResources().getColor(R.color.status_error));
         }
-
-        // Update card counts
-        updateDashboardCounts();
     }
 
-    private void updateDashboardCounts() {
-        // Update patient count in card
-        int patientCount = dbHelper.getPatientCount();
-        TextView tvPatientCount = cardPatients.findViewById(R.id.tv_card_count);
-        if (tvPatientCount != null) {
-            tvPatientCount.setText(String.valueOf(patientCount));
-        }
+    private void updateDashboard() {
+        // Update visits today (mock data - replace with actual logic)
+        int visitsToday = dbHelper.getVisitsCountToday();
+        tvVisitsToday.setText(String.valueOf(visitsToday));
+
+        // Update high risk count
+        int highRiskCount = dbHelper.getHighRiskPatientsCount();
+        tvHighRisk.setText(String.valueOf(highRiskCount));
+
+        // Update pending sync count
+        int pendingCount = dbHelper.getTotalPendingRecords();
+        tvPendingSync.setText(String.valueOf(pendingCount));
     }
 
     private void performSync() {
         if (!NetworkUtils.isNetworkAvailable(this)) {
-            Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(this, getString(R.string.sync_in_progress), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Syncing...", Toast.LENGTH_SHORT).show();
         
         // Start sync service
         Intent syncIntent = new Intent(this, SyncService.class);
@@ -168,28 +225,10 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(new Intent(this, SyncStatusActivity.class));
     }
 
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-
-        if (id == R.id.card_patients) {
-            startActivity(new Intent(this, PatientListActivity.class));
-        } else if (id == R.id.card_pregnancy) {
-            startActivity(new Intent(this, PregnancyListActivity.class));
-        } else if (id == R.id.card_child_growth) {
-            startActivity(new Intent(this, ChildGrowthListActivity.class));
-        } else if (id == R.id.card_vaccination) {
-            startActivity(new Intent(this, VaccinationListActivity.class));
-        } else if (id == R.id.card_history) {
-            startActivity(new Intent(this, VisitHistoryActivity.class));
-        } else if (id == R.id.card_sync) {
-            startActivity(new Intent(this, SyncStatusActivity.class));
-        } else if (id == R.id.card_profile || id == R.id.iv_profile) {
-            startActivity(new Intent(this, ProfileActivity.class));
-        } else if (id == R.id.card_ai_insights) {
-            startActivity(new Intent(this, AIInsightsActivity.class));
-        } else if (id == R.id.card_alerts) {
-            startActivity(new Intent(this, PatientAlertsActivity.class));
+    private void performSyncInBackground() {
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            Intent syncIntent = new Intent(this, SyncService.class);
+            startService(syncIntent);
         }
     }
 

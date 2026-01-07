@@ -175,23 +175,25 @@ public class LoginActivity extends AppCompatActivity {
                 try {
                     boolean success = response.getBoolean("success");
                     if (success) {
-                        JSONObject user = response.getJSONObject("user");
+                        // API returns user data in "data" field, not "user"
+                        JSONObject user = response.has("data") ? response.getJSONObject("data") : response.getJSONObject("user");
                         
-                        // Save user session
+                        // Save user session with server data
                         sessionManager.createLoginSession(
                                 user.optLong("id", 0),
                                 user.optString("name", ""),
                                 user.optString("phone", phoneOrWorkerId),
                                 user.optString("email", ""),
-                                user.optString("worker_id", ""),
+                                user.optString("asha_id", ""), // Use asha_id as worker_id
                                 user.optString("state", ""),
                                 user.optString("district", ""),
-                                user.optString("area", "")
+                                user.optString("village", "") // Use village as area
                         );
 
-                        // Save to local DB for offline login
+                        // Save to local DB for offline login capability
                         dbHelper.setUserLoggedIn(phoneOrWorkerId, true);
 
+                        Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         navigateToHome();
                     } else {
                         String message = response.optString("message", "Login failed");
@@ -201,7 +203,7 @@ public class LoginActivity extends AppCompatActivity {
                         loginOffline(phoneOrWorkerId, password);
                     }
                 } catch (JSONException e) {
-                    Toast.makeText(LoginActivity.this, "Error parsing response", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     loginOffline(phoneOrWorkerId, password);
                 }
             }
@@ -209,7 +211,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 showLoading(false);
-                Toast.makeText(LoginActivity.this, "Server error: " + errorMessage + ". Trying offline login...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Network error. Trying offline login...", Toast.LENGTH_SHORT).show();
                 loginOffline(phoneOrWorkerId, password);
             }
         });

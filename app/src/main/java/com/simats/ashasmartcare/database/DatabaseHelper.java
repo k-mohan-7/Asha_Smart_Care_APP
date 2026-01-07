@@ -1085,6 +1085,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + TABLE_USERS + " WHERE " + COL_IS_LOGGED_IN + " = 1", null);
     }
 
+    public String getLoggedInUserName() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_NAME + " FROM " + TABLE_USERS + " WHERE " + COL_IS_LOGGED_IN + " = 1", null);
+        String name = null;
+        if (cursor.moveToFirst()) {
+            name = cursor.getString(0);
+        }
+        cursor.close();
+        return name;
+    }
+
+    public String getLoggedInUserArea() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_AREA + " FROM " + TABLE_USERS + " WHERE " + COL_IS_LOGGED_IN + " = 1", null);
+        String area = null;
+        if (cursor.moveToFirst()) {
+            area = cursor.getString(0);
+        }
+        cursor.close();
+        return area;
+    }
+
     public boolean isAnyUserLoggedIn() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_USERS + " WHERE " + COL_IS_LOGGED_IN + " = 1", null);
@@ -1108,6 +1130,49 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (db != null && db.isOpen()) {
             db.close();
         }
+    }
+
+    // ==================== DASHBOARD STATISTICS METHODS ====================
+
+    /**
+     * Get count of visits today
+     */
+    public int getVisitsCountToday() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                .format(new java.util.Date());
+        
+        String query = "SELECT COUNT(*) FROM " + TABLE_VISITS + 
+                      " WHERE date(" + COL_VISIT_DATE + ") = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{today});
+        
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
+
+    /**
+     * Get count of high-risk patients (pregnant women)
+     * Uses medical_notes to identify high-risk cases
+     */
+    public int getHighRiskPatientsCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        
+        // Count pregnant patients - simplified query
+        String query = "SELECT COUNT(*) FROM " + TABLE_PATIENTS + 
+                      " WHERE " + COL_CATEGORY + " = 'Pregnant'";
+        
+        Cursor cursor = db.rawQuery(query, null);
+        
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
     }
     
     // ==================== ADDITIONAL METHODS ====================
@@ -1257,4 +1322,155 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return result;
     }
+
+    // ==================== SIMPLIFIED METHODS FOR ADD PATIENT SCREEN ====================
+
+    /**
+     * Simplified method to add patient with basic details
+     */
+    public long addPatient(String name, int age, String gender, String category, 
+                           String village, String phone, String abhaId, 
+                           String ashaPhone, String currentDate) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_NAME, name);
+        values.put(COL_AGE, age);
+        values.put(COL_GENDER, gender);
+        values.put(COL_CATEGORY, category);
+        values.put(COL_AREA, village);
+        values.put(COL_PHONE, phone);
+        // Store ABHA ID in medical_notes for now
+        if (abhaId != null && !abhaId.isEmpty()) {
+            values.put(COL_MEDICAL_NOTES, "ABHA ID: " + abhaId);
+        }
+        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+        values.put(COL_CREATED_AT, currentDate);
+        values.put(COL_LAST_UPDATED, currentDate);
+
+        long patientId = db.insert(TABLE_PATIENTS, null, values);
+        
+        if (patientId > 0) {
+            addToSyncQueue(TABLE_PATIENTS, patientId, "INSERT");
+        }
+        
+        return patientId;
+    }
+
+    /**
+     * Add pregnancy visit data
+     */
+    public long addPregnancyVisit(long patientId, String lmpDate, String edd, 
+                                   String bloodPressure, String weight, String hemoglobin,
+                                   String dangerSigns, String medicines, String nextVisitDate) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_PATIENT_ID, patientId);
+        values.put(COL_VISIT_DATE, getCurrentTimestamp());
+        values.put(COL_EXPECTED_DELIVERY, edd);
+        values.put(COL_WEIGHT, weight);
+        
+        // Store additional data in notes
+        StringBuilder notes = new StringBuilder();
+        notes.append("LMP Date: ").append(lmpDate).append("\n");
+        notes.append("Blood Pressure: ").append(bloodPressure).append("\n");
+        notes.append("Hemoglobin: ").append(hemoglobin).append("\n");
+        if (!dangerSigns.isEmpty()) {
+            notes.append("Danger Signs: ").append(dangerSigns).append("\n");
+        }
+        if (!medicines.isEmpty()) {
+            notes.append("Medicines: ").append(medicines).append("\n");
+        }
+        notes.append("Next Visit Date: ").append(nextVisitDate);
+        
+        values.put(COL_NOTES, notes.toString());
+        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+
+        long visitId = db.insert(TABLE_PREGNANCY_VISITS, null, values);
+        
+        if (visitId > 0) {
+            addToSyncQueue(TABLE_PREGNANCY_VISITS, visitId, "INSERT");
+        }
+        
+        return visitId;
+    }
+
+    /**
+     * Add child growth data
+     */
+    public long addChildGrowth(long patientId, String weight, String height, String muac, 
+                               String temperature, String breastfeeding, String complementaryFeeding,
+                               String appetite, String symptoms, String lastVaccine, String nextVaccineDate) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_PATIENT_ID, patientId);
+        values.put(COL_RECORD_DATE, getCurrentTimestamp());
+        values.put(COL_WEIGHT, weight);
+        values.put(COL_HEIGHT, height);
+        // Store MUAC in head_circumference column temporarily
+        values.put(COL_HEAD_CIRCUMFERENCE, muac);
+        
+        // Store additional data in growth_status or notes column
+        StringBuilder notes = new StringBuilder();
+        notes.append("Temperature: ").append(temperature).append("\n");
+        notes.append("Breastfeeding: ").append(breastfeeding).append("\n");
+        notes.append("Complementary Feeding: ").append(complementaryFeeding).append("\n");
+        notes.append("Appetite: ").append(appetite).append("\n");
+        if (!symptoms.isEmpty()) {
+            notes.append("Symptoms: ").append(symptoms).append("\n");
+        }
+        notes.append("Last Vaccine: ").append(lastVaccine).append("\n");
+        notes.append("Next Vaccine Date: ").append(nextVaccineDate);
+        
+        values.put(COL_GROWTH_STATUS, notes.toString());
+        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+
+        long growthId = db.insert(TABLE_CHILD_GROWTH, null, values);
+        
+        if (growthId > 0) {
+            addToSyncQueue(TABLE_CHILD_GROWTH, growthId, "INSERT");
+        }
+        
+        return growthId;
+    }
+
+    /**
+     * Add general visit data
+     */
+    public long addGeneralVisit(long patientId, String bloodPressure, String weight, 
+                                String sugar, String symptoms, String tobacco, String alcohol,
+                                String physicalActivity, String referral, String followUpDate) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_PATIENT_ID, patientId);
+        values.put(COL_VISIT_DATE, getCurrentTimestamp());
+        values.put(COL_VISIT_TYPE, "General Health Visit");
+        
+        // Store all data in description
+        StringBuilder description = new StringBuilder();
+        description.append("Blood Pressure: ").append(bloodPressure).append("\n");
+        description.append("Weight: ").append(weight).append(" kg\n");
+        if (!sugar.isEmpty()) {
+            description.append("Blood Sugar: ").append(sugar).append(" mg/dL\n");
+        }
+        if (!symptoms.isEmpty()) {
+            description.append("Symptoms: ").append(symptoms).append("\n");
+        }
+        description.append("Tobacco Use: ").append(tobacco).append("\n");
+        description.append("Alcohol Use: ").append(alcohol).append("\n");
+        description.append("Physical Activity: ").append(physicalActivity).append("\n");
+        description.append("Referral Required: ").append(referral).append("\n");
+        description.append("Follow-up Date: ").append(followUpDate);
+        
+        values.put(COL_DESCRIPTION, description.toString());
+        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+
+        long visitId = db.insert(TABLE_VISITS, null, values);
+        
+        if (visitId > 0) {
+            addToSyncQueue(TABLE_VISITS, visitId, "INSERT");
+        }
+        
+        return visitId;
+    }
 }
+

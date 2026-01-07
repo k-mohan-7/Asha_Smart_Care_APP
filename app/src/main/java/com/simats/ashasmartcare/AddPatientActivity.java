@@ -3,58 +3,70 @@ package com.simats.ashasmartcare;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.ScrollView;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.cardview.widget.CardView;
 
-import com.android.volley.VolleyError;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.chip.Chip;
 import com.simats.ashasmartcare.database.DatabaseHelper;
-import com.simats.ashasmartcare.models.Patient;
-import com.simats.ashasmartcare.network.ApiHelper;
-import com.simats.ashasmartcare.utils.Constants;
-import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.utils.SessionManager;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.UUID;
 
 public class AddPatientActivity extends AppCompatActivity {
 
+    // Header
     private ImageView ivBack;
-    private ScrollView scrollView;
-    private ProgressBar progressBar;
 
-    // Form fields
-    private TextInputLayout tilName, tilAge, tilPhone, tilAddress, tilVillage, tilDistrict, tilState;
-    private TextInputLayout tilCategory, tilBloodGroup, tilEmergencyContact, tilMedicalHistory;
-    private TextInputEditText etName, etAge, etPhone, etAddress, etVillage, etDistrict;
-    private TextInputEditText etEmergencyContact, etMedicalHistory;
-    private AutoCompleteTextView spinnerState, spinnerCategory, spinnerBloodGroup;
-    private RadioGroup rgGender;
-    private RadioButton rbMale, rbFemale, rbOther;
+    // Basic Personal Details (always visible)
+    private EditText etFullName, etAge, etVillage, etPhone, etAbhaId;
+    private Spinner spinnerGender, spinnerCategory;
+
+    // Dynamic section containers
+    private CardView cardChildVisit, cardPregnancyVisit, cardGeneralVisit;
+
+    // Child Visit fields
+    private EditText etChildWeight, etChildHeight, etChildMuac, etChildTemperature;
+    private RadioGroup rgBreastfeeding, rgComplementaryFeeding, rgAppetite;
+    private CheckBox cbFever, cbDiarrhea, cbCoughCold, cbVomiting, cbWeakness;
+    private Spinner spinnerLastVaccine;
+    private EditText etNextVaccineDate;
+
+    // Pregnancy Visit fields
+    private EditText etLmpDate, etBpSystolic, etBpDiastolic, etPregnancyWeight, etHemoglobin;
+    private TextView tvEdd;
+    private Chip chipHeadache, chipSwelling, chipBleeding, chipBlurredVision, chipReducedMovement;
+    private CheckBox cbIronTablets, cbCalciumTablets, cbTetanusInjection;
+    private EditText etNextVisitDate;
+
+    // General Visit fields
+    private EditText etGeneralBpSystolic, etGeneralBpDiastolic, etGeneralWeight, etSugar;
+    private CheckBox cbGeneralFever, cbBodyPain, cbBreathlessness, cbDizziness, cbChestPain;
+    private RadioGroup rgTobacco, rgAlcohol, rgPhysicalActivity;
+    private SwitchCompat switchReferral;
+    private EditText etFollowUpDate;
+
+    // Bottom button
     private Button btnSave;
 
+    // Helpers
     private DatabaseHelper dbHelper;
-    private ApiHelper apiHelper;
     private SessionManager sessionManager;
-
-    private Patient editPatient = null;
-    private boolean isEditMode = false;
+    private String selectedCategory = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,72 +76,129 @@ public class AddPatientActivity extends AppCompatActivity {
         initViews();
         setupSpinners();
         setupListeners();
-        checkEditMode();
+        setupDatePickers();
     }
 
     private void initViews() {
-        ivBack = findViewById(R.id.ivBack);
-        scrollView = findViewById(R.id.scrollView);
-        progressBar = findViewById(R.id.progressBar);
+        // Header
+        ivBack = findViewById(R.id.iv_back);
 
-        tilName = findViewById(R.id.tilName);
-        tilAge = findViewById(R.id.tilAge);
-        tilPhone = findViewById(R.id.tilPhone);
-        tilAddress = findViewById(R.id.tilAddress);
-        tilVillage = findViewById(R.id.tilVillage);
-        tilDistrict = findViewById(R.id.tilDistrict);
-        tilState = findViewById(R.id.tilState);
-        tilCategory = findViewById(R.id.tilCategory);
-        tilBloodGroup = findViewById(R.id.tilBloodGroup);
-        tilEmergencyContact = findViewById(R.id.tilEmergencyContact);
-        tilMedicalHistory = findViewById(R.id.tilMedicalHistory);
+        // Basic fields
+        etFullName = findViewById(R.id.et_full_name);
+        etAge = findViewById(R.id.et_age);
+        etVillage = findViewById(R.id.et_village);
+        etPhone = findViewById(R.id.et_phone);
+        etAbhaId = findViewById(R.id.et_abha_id);
+        spinnerGender = findViewById(R.id.spinner_gender);
+        spinnerCategory = findViewById(R.id.spinner_category);
 
-        etName = findViewById(R.id.etName);
-        etAge = findViewById(R.id.etAge);
-        etPhone = findViewById(R.id.etPhone);
-        etAddress = findViewById(R.id.etAddress);
-        etVillage = findViewById(R.id.etVillage);
-        etDistrict = findViewById(R.id.etDistrict);
-        etEmergencyContact = findViewById(R.id.etEmergencyContact);
-        etMedicalHistory = findViewById(R.id.etMedicalHistory);
+        // Dynamic section containers
+        cardChildVisit = findViewById(R.id.card_child_visit);
+        cardPregnancyVisit = findViewById(R.id.card_pregnancy_visit);
+        cardGeneralVisit = findViewById(R.id.card_general_visit);
 
-        spinnerState = findViewById(R.id.spinnerState);
-        spinnerCategory = findViewById(R.id.spinnerCategory);
-        spinnerBloodGroup = findViewById(R.id.spinnerBloodGroup);
+        // Child Visit views
+        etChildWeight = findViewById(R.id.et_child_weight);
+        etChildHeight = findViewById(R.id.et_child_height);
+        etChildMuac = findViewById(R.id.et_child_muac);
+        etChildTemperature = findViewById(R.id.et_child_temperature);
+        rgBreastfeeding = findViewById(R.id.rg_breastfeeding);
+        rgComplementaryFeeding = findViewById(R.id.rg_complementary_feeding);
+        rgAppetite = findViewById(R.id.rg_appetite);
+        cbFever = findViewById(R.id.cb_fever);
+        cbDiarrhea = findViewById(R.id.cb_diarrhea);
+        cbCoughCold = findViewById(R.id.cb_cough_cold);
+        cbVomiting = findViewById(R.id.cb_vomiting);
+        cbWeakness = findViewById(R.id.cb_weakness);
+        spinnerLastVaccine = findViewById(R.id.spinner_last_vaccine);
+        etNextVaccineDate = findViewById(R.id.et_next_vaccine_date);
 
-        rgGender = findViewById(R.id.rgGender);
-        rbMale = findViewById(R.id.rbMale);
-        rbFemale = findViewById(R.id.rbFemale);
-        rbOther = findViewById(R.id.rbOther);
+        // Pregnancy Visit views
+        etLmpDate = findViewById(R.id.et_lmp_date);
+        tvEdd = findViewById(R.id.tv_edd);
+        etBpSystolic = findViewById(R.id.et_bp_systolic);
+        etBpDiastolic = findViewById(R.id.et_bp_diastolic);
+        etPregnancyWeight = findViewById(R.id.et_pregnancy_weight);
+        etHemoglobin = findViewById(R.id.et_hemoglobin);
+        chipHeadache = findViewById(R.id.chip_headache);
+        chipSwelling = findViewById(R.id.chip_swelling);
+        chipBleeding = findViewById(R.id.chip_bleeding);
+        chipBlurredVision = findViewById(R.id.chip_blurred_vision);
+        chipReducedMovement = findViewById(R.id.chip_reduced_movement);
+        cbIronTablets = findViewById(R.id.cb_iron_tablets);
+        cbCalciumTablets = findViewById(R.id.cb_calcium_tablets);
+        cbTetanusInjection = findViewById(R.id.cb_tetanus_injection);
+        etNextVisitDate = findViewById(R.id.et_next_visit_date);
 
-        btnSave = findViewById(R.id.btnSave);
+        // General Visit views
+        etGeneralBpSystolic = findViewById(R.id.et_general_bp_systolic);
+        etGeneralBpDiastolic = findViewById(R.id.et_general_bp_diastolic);
+        etGeneralWeight = findViewById(R.id.et_general_weight);
+        etSugar = findViewById(R.id.et_sugar);
+        cbGeneralFever = findViewById(R.id.cb_general_fever);
+        cbBodyPain = findViewById(R.id.cb_body_pain);
+        cbBreathlessness = findViewById(R.id.cb_breathlessness);
+        cbDizziness = findViewById(R.id.cb_dizziness);
+        cbChestPain = findViewById(R.id.cb_chest_pain);
+        rgTobacco = findViewById(R.id.rg_tobacco);
+        rgAlcohol = findViewById(R.id.rg_alcohol);
+        rgPhysicalActivity = findViewById(R.id.rg_physical_activity);
+        switchReferral = findViewById(R.id.switch_referral);
+        etFollowUpDate = findViewById(R.id.et_follow_up_date);
 
+        // Bottom button
+        btnSave = findViewById(R.id.btn_save);
+
+        // Initialize helpers
         dbHelper = DatabaseHelper.getInstance(this);
-        apiHelper = ApiHelper.getInstance(this);
         sessionManager = SessionManager.getInstance(this);
     }
 
     private void setupSpinners() {
-        // State spinner
-        ArrayAdapter<String> stateAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, Constants.INDIAN_STATES);
-        spinnerState.setAdapter(stateAdapter);
+        // Gender spinner
+        String[] genders = {"Select Gender", "Male", "Female", "Other"};
+        ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, genders);
+        genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerGender.setAdapter(genderAdapter);
 
         // Category spinner
+        String[] categories = {"Select Category", "Pregnant Woman", "Child (0-5 years)", "General Adult"};
         ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, Constants.PATIENT_CATEGORIES);
+                android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
 
-        // Blood group spinner
-        String[] bloodGroups = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"};
-        ArrayAdapter<String> bloodAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, bloodGroups);
-        spinnerBloodGroup.setAdapter(bloodAdapter);
+        // Last Vaccine spinner
+        String[] vaccines = {"Select Vaccine", "BCG", "OPV 0", "Hepatitis B Birth Dose", "OPV 1", 
+                "Pentavalent 1", "Rotavirus 1", "IPV 1", "OPV 2", "Pentavalent 2", "Rotavirus 2", 
+                "OPV 3", "Pentavalent 3", "Rotavirus 3", "IPV 2", "PCV 1", "PCV 2", "PCV Booster", 
+                "Measles 1", "JE 1", "Vitamin A (9 months)", "DPT Booster 1", "Measles 2", "JE 2", 
+                "OPV Booster", "DPT Booster 2"};
+        ArrayAdapter<String> vaccineAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, vaccines);
+        vaccineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLastVaccine.setAdapter(vaccineAdapter);
     }
 
     private void setupListeners() {
         ivBack.setOnClickListener(v -> finish());
 
+        // Category selection listener - Show/hide appropriate section
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedCategory = parent.getItemAtPosition(position).toString();
+                showCategorySpecificSection(selectedCategory);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                hideAllCategorySections();
+            }
+        });
+
+        // Save button
         btnSave.setOnClickListener(v -> {
             if (validateForm()) {
                 savePatient();
@@ -137,221 +206,297 @@ public class AddPatientActivity extends AppCompatActivity {
         });
     }
 
-    private void checkEditMode() {
-        long patientId = getIntent().getLongExtra("patient_id", -1);
-        if (patientId != -1) {
-            isEditMode = true;
-            editPatient = dbHelper.getPatientById(patientId);
-            if (editPatient != null) {
-                populateForm(editPatient);
-                btnSave.setText("Update Patient");
-            }
+    private void setupDatePickers() {
+        final Calendar calendar = Calendar.getInstance();
+
+        // LMP Date Picker (Pregnancy)
+        etLmpDate.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar selectedDate = Calendar.getInstance();
+                        selectedDate.set(year, month, dayOfMonth);
+                        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                        etLmpDate.setText(sdf.format(selectedDate.getTime()));
+                        
+                        // Calculate and set EDD (LMP + 280 days)
+                        selectedDate.add(Calendar.DAY_OF_YEAR, 280);
+                        SimpleDateFormat eddFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                        tvEdd.setText(eddFormat.format(selectedDate.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH));
+            datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+            datePickerDialog.show();
+        });
+
+        // Next Visit Date Picker (Pregnancy)
+        etNextVisitDate.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar selectedDate = Calendar.getInstance();
+                        selectedDate.set(year, month, dayOfMonth);
+                        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                        etNextVisitDate.setText(sdf.format(selectedDate.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH));
+            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+            datePickerDialog.show();
+        });
+
+        // Next Vaccine Date Picker (Child)
+        etNextVaccineDate.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar selectedDate = Calendar.getInstance();
+                        selectedDate.set(year, month, dayOfMonth);
+                        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                        etNextVaccineDate.setText(sdf.format(selectedDate.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH));
+            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+            datePickerDialog.show();
+        });
+
+        // Follow-up Date Picker (General)
+        etFollowUpDate.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar selectedDate = Calendar.getInstance();
+                        selectedDate.set(year, month, dayOfMonth);
+                        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                        etFollowUpDate.setText(sdf.format(selectedDate.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH));
+            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+            datePickerDialog.show();
+        });
+    }
+
+    private void showCategorySpecificSection(String category) {
+        // Hide all sections first
+        hideAllCategorySections();
+
+        // Show appropriate section based on category
+        if ("Pregnant Woman".equals(category)) {
+            cardPregnancyVisit.setVisibility(View.VISIBLE);
+        } else if ("Child (0-5 years)".equals(category)) {
+            cardChildVisit.setVisibility(View.VISIBLE);
+        } else if ("General Adult".equals(category)) {
+            cardGeneralVisit.setVisibility(View.VISIBLE);
         }
     }
 
-    private void populateForm(Patient patient) {
-        etName.setText(patient.getName());
-        etAge.setText(String.valueOf(patient.getAge()));
-        etPhone.setText(patient.getPhone());
-        etAddress.setText(patient.getAddress());
-        etVillage.setText(patient.getVillage());
-        etDistrict.setText(patient.getDistrict());
-        spinnerState.setText(patient.getState(), false);
-        spinnerCategory.setText(patient.getCategory(), false);
-        spinnerBloodGroup.setText(patient.getBloodGroup(), false);
-        etEmergencyContact.setText(patient.getEmergencyContact());
-        etMedicalHistory.setText(patient.getMedicalHistory());
-
-        // Set gender
-        String gender = patient.getGender();
-        if ("Male".equals(gender)) {
-            rbMale.setChecked(true);
-        } else if ("Female".equals(gender)) {
-            rbFemale.setChecked(true);
-        } else {
-            rbOther.setChecked(true);
-        }
+    private void hideAllCategorySections() {
+        cardChildVisit.setVisibility(View.GONE);
+        cardPregnancyVisit.setVisibility(View.GONE);
+        cardGeneralVisit.setVisibility(View.GONE);
     }
 
     private boolean validateForm() {
         boolean isValid = true;
 
         // Name validation
-        String name = etName.getText().toString().trim();
+        String name = etFullName.getText().toString().trim();
         if (name.isEmpty()) {
-            tilName.setError("Name is required");
+            etFullName.setError("Name is required");
             isValid = false;
-        } else {
-            tilName.setError(null);
         }
 
         // Age validation
         String ageStr = etAge.getText().toString().trim();
         if (ageStr.isEmpty()) {
-            tilAge.setError("Age is required");
+            etAge.setError("Age is required");
             isValid = false;
         } else {
             try {
                 int age = Integer.parseInt(ageStr);
                 if (age < 0 || age > 120) {
-                    tilAge.setError("Enter valid age");
+                    etAge.setError("Enter valid age");
                     isValid = false;
-                } else {
-                    tilAge.setError(null);
                 }
             } catch (NumberFormatException e) {
-                tilAge.setError("Enter valid age");
+                etAge.setError("Enter valid age");
                 isValid = false;
             }
         }
 
-        // Phone validation
-        String phone = etPhone.getText().toString().trim();
-        if (phone.isEmpty()) {
-            tilPhone.setError("Phone is required");
+        // Gender validation
+        if (spinnerGender.getSelectedItemPosition() == 0) {
+            Toast.makeText(this, "Please select gender", Toast.LENGTH_SHORT).show();
             isValid = false;
-        } else if (phone.length() != 10) {
-            tilPhone.setError("Enter 10 digit phone number");
+        }
+
+        // Category validation
+        if (spinnerCategory.getSelectedItemPosition() == 0) {
+            Toast.makeText(this, "Please select patient category", Toast.LENGTH_SHORT).show();
             isValid = false;
-        } else {
-            tilPhone.setError(null);
         }
 
         // Village validation
         String village = etVillage.getText().toString().trim();
         if (village.isEmpty()) {
-            tilVillage.setError("Village is required");
+            etVillage.setError("Village name is required");
             isValid = false;
-        } else {
-            tilVillage.setError(null);
-        }
-
-        // Category validation
-        String category = spinnerCategory.getText().toString().trim();
-        if (category.isEmpty()) {
-            tilCategory.setError("Category is required");
-            isValid = false;
-        } else {
-            tilCategory.setError(null);
         }
 
         return isValid;
     }
 
     private void savePatient() {
-        showLoading(true);
+        try {
+            // Collect basic patient details
+            String name = etFullName.getText().toString().trim();
+            int age = Integer.parseInt(etAge.getText().toString().trim());
+            String gender = spinnerGender.getSelectedItem().toString();
+            String village = etVillage.getText().toString().trim();
+            String phone = etPhone.getText().toString().trim();
+            String abhaId = etAbhaId.getText().toString().trim();
 
-        Patient patient = new Patient();
-        if (isEditMode && editPatient != null) {
-            patient.setId(editPatient.getId());
-            patient.setServerId(editPatient.getServerId());
-        }
+            // Get current user's phone
+            String ashaPhone = sessionManager.getUserPhone();
+            
+            // Get current date
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            String currentDate = sdf.format(Calendar.getInstance().getTime());
 
-        patient.setName(etName.getText().toString().trim());
-        patient.setAge(Integer.parseInt(etAge.getText().toString().trim()));
-        patient.setPhone(etPhone.getText().toString().trim());
-        patient.setAddress(etAddress.getText().toString().trim());
-        patient.setVillage(etVillage.getText().toString().trim());
-        patient.setDistrict(etDistrict.getText().toString().trim());
-        patient.setState(spinnerState.getText().toString().trim());
-        patient.setCategory(spinnerCategory.getText().toString().trim());
-        patient.setBloodGroup(spinnerBloodGroup.getText().toString().trim());
-        patient.setEmergencyContact(etEmergencyContact.getText().toString().trim());
-        patient.setMedicalHistory(etMedicalHistory.getText().toString().trim());
-        patient.setAshaId(String.valueOf(sessionManager.getUserId()));
+            // Insert patient into database
+            long patientId = dbHelper.addPatient(name, age, gender, selectedCategory, village, 
+                                                  phone, abhaId, ashaPhone, currentDate);
 
-        // Get gender
-        int selectedGenderId = rgGender.getCheckedRadioButtonId();
-        if (selectedGenderId == R.id.rbMale) {
-            patient.setGender("Male");
-        } else if (selectedGenderId == R.id.rbFemale) {
-            patient.setGender("Female");
-        } else {
-            patient.setGender("Other");
-        }
-
-        // Set registration date
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        patient.setRegistrationDate(sdf.format(Calendar.getInstance().getTime()));
-
-        if (NetworkUtils.isNetworkAvailable(this)) {
-            // Online: Try to save to server first
-            savePatientToServer(patient);
-        } else {
-            // Offline: Save locally with pending status
-            patient.setSyncStatus("PENDING");
-            savePatientLocally(patient);
-        }
-    }
-
-    private void savePatientToServer(Patient patient) {
-        ApiHelper.ApiCallback callback = new ApiHelper.ApiCallback() {
-            @Override
-            public void onSuccess(JSONObject response) {
-                try {
-                    if (response.getBoolean("success")) {
-                        String serverId = response.optString("patient_id", "");
-                        try {
-                            patient.setServerId(Integer.parseInt(serverId));
-                        } catch (NumberFormatException e) {
-                            patient.setServerId(0);
-                        }
-                        patient.setSyncStatus("SYNCED");
-                        savePatientLocally(patient);
-                    } else {
-                        String message = response.optString("message", "Failed to save patient");
-                        Toast.makeText(AddPatientActivity.this, message, Toast.LENGTH_SHORT).show();
-                        // Save locally with pending status
-                        patient.setSyncStatus("PENDING");
-                        savePatientLocally(patient);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    patient.setSyncStatus("PENDING");
-                    savePatientLocally(patient);
+            if (patientId > 0) {
+                // Save category-specific data
+                if ("Pregnant Woman".equals(selectedCategory)) {
+                    savePregnancyData(patientId);
+                } else if ("Child (0-5 years)".equals(selectedCategory)) {
+                    saveChildData(patientId);
+                } else if ("General Adult".equals(selectedCategory)) {
+                    saveGeneralVisitData(patientId);
                 }
+
+                Toast.makeText(this, "Patient saved successfully (Offline)", Toast.LENGTH_SHORT).show();
+                finish(); // Close activity and return to previous screen
+            } else {
+                Toast.makeText(this, "Failed to save patient", Toast.LENGTH_SHORT).show();
             }
 
-            @Override
-            public void onError(String error) {
-                // Network error, save locally with pending status
-                patient.setSyncStatus("PENDING");
-                savePatientLocally(patient);
-            }
-        };
-
-        if (isEditMode) {
-            apiHelper.updatePatient(patient, callback);
-        } else {
-            apiHelper.addPatient(patient, callback);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void savePatientLocally(Patient patient) {
-        long result;
-        if (isEditMode) {
-            result = dbHelper.updatePatient(patient);
-        } else {
-            result = dbHelper.insertPatient(patient);
-        }
+    private void savePregnancyData(long patientId) {
+        try {
+            String lmpDate = etLmpDate.getText().toString().trim();
+            String edd = tvEdd.getText().toString().trim();
+            String bpSys = etBpSystolic.getText().toString().trim();
+            String bpDia = etBpDiastolic.getText().toString().trim();
+            String weight = etPregnancyWeight.getText().toString().trim();
+            String hemoglobin = etHemoglobin.getText().toString().trim();
+            
+            // Collect danger signs
+            StringBuilder dangerSigns = new StringBuilder();
+            if (chipHeadache.isChecked()) dangerSigns.append("Severe Headache,");
+            if (chipSwelling.isChecked()) dangerSigns.append("Swelling,");
+            if (chipBleeding.isChecked()) dangerSigns.append("Bleeding,");
+            if (chipBlurredVision.isChecked()) dangerSigns.append("Blurred Vision,");
+            if (chipReducedMovement.isChecked()) dangerSigns.append("Reduced Movement,");
 
-        showLoading(false);
+            // Collect medicines
+            StringBuilder medicines = new StringBuilder();
+            if (cbIronTablets.isChecked()) medicines.append("Iron Tablets,");
+            if (cbCalciumTablets.isChecked()) medicines.append("Calcium Tablets,");
+            if (cbTetanusInjection.isChecked()) medicines.append("Tetanus Injection,");
 
-        if (result != -1) {
-            String message = isEditMode ? "Patient updated successfully" : "Patient added successfully";
-            if ("PENDING".equals(patient.getSyncStatus())) {
-                message += " (will sync when online)";
-            }
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(this, "Failed to save patient", Toast.LENGTH_SHORT).show();
+            String nextVisitDate = etNextVisitDate.getText().toString().trim();
+
+            // Insert into pregnancy_visits table
+            dbHelper.addPregnancyVisit(patientId, lmpDate, edd, bpSys + "/" + bpDia, 
+                                        weight, hemoglobin, dangerSigns.toString(), 
+                                        medicines.toString(), nextVisitDate);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private void showLoading(boolean show) {
-        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        btnSave.setEnabled(!show);
-        scrollView.setAlpha(show ? 0.5f : 1.0f);
+    private void saveChildData(long patientId) {
+        try {
+            String weight = etChildWeight.getText().toString().trim();
+            String height = etChildHeight.getText().toString().trim();
+            String muac = etChildMuac.getText().toString().trim();
+            String temperature = etChildTemperature.getText().toString().trim();
+
+            // Nutrition status
+            String breastfeeding = rgBreastfeeding.getCheckedRadioButtonId() == R.id.rb_breastfeeding_yes ? "Yes" : "No";
+            String complementaryFeeding = rgComplementaryFeeding.getCheckedRadioButtonId() == R.id.rb_complementary_yes ? "Yes" : "No";
+            String appetite = rgAppetite.getCheckedRadioButtonId() == R.id.rb_appetite_good ? "Good" : "Poor";
+
+            // Collect symptoms
+            StringBuilder symptoms = new StringBuilder();
+            if (cbFever.isChecked()) symptoms.append("Fever,");
+            if (cbDiarrhea.isChecked()) symptoms.append("Diarrhea,");
+            if (cbCoughCold.isChecked()) symptoms.append("Cough/Cold,");
+            if (cbVomiting.isChecked()) symptoms.append("Vomiting,");
+            if (cbWeakness.isChecked()) symptoms.append("Weakness,");
+
+            // Immunization
+            String lastVaccine = spinnerLastVaccine.getSelectedItem().toString();
+            String nextVaccineDate = etNextVaccineDate.getText().toString().trim();
+
+            // Insert into child_growth table
+            dbHelper.addChildGrowth(patientId, weight, height, muac, temperature,
+                                     breastfeeding, complementaryFeeding, appetite,
+                                     symptoms.toString(), lastVaccine, nextVaccineDate);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveGeneralVisitData(long patientId) {
+        try {
+            String bpSys = etGeneralBpSystolic.getText().toString().trim();
+            String bpDia = etGeneralBpDiastolic.getText().toString().trim();
+            String weight = etGeneralWeight.getText().toString().trim();
+            String sugar = etSugar.getText().toString().trim();
+
+            // Collect symptoms
+            StringBuilder symptoms = new StringBuilder();
+            if (cbGeneralFever.isChecked()) symptoms.append("Fever,");
+            if (cbBodyPain.isChecked()) symptoms.append("Body Pain,");
+            if (cbBreathlessness.isChecked()) symptoms.append("Breathlessness,");
+            if (cbDizziness.isChecked()) symptoms.append("Dizziness,");
+            if (cbChestPain.isChecked()) symptoms.append("Chest Pain,");
+
+            // Lifestyle
+            String tobacco = rgTobacco.getCheckedRadioButtonId() == R.id.rb_tobacco_yes ? "Yes" : "No";
+            String alcohol = rgAlcohol.getCheckedRadioButtonId() == R.id.rb_alcohol_yes ? "Yes" : "No";
+            
+            String physicalActivity = "Moderate";
+            if (rgPhysicalActivity.getCheckedRadioButtonId() == R.id.rb_activity_low) {
+                physicalActivity = "Low";
+            } else if (rgPhysicalActivity.getCheckedRadioButtonId() == R.id.rb_activity_active) {
+                physicalActivity = "Active";
+            }
+
+            String referral = switchReferral.isChecked() ? "Yes" : "No";
+            String followUpDate = etFollowUpDate.getText().toString().trim();
+
+            // Insert into visits table
+            dbHelper.addGeneralVisit(patientId, bpSys + "/" + bpDia, weight, sugar,
+                                      symptoms.toString(), tobacco, alcohol, physicalActivity,
+                                      referral, followUpDate);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
