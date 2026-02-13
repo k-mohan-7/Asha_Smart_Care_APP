@@ -57,11 +57,15 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
         holder.itemView.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(context,
                     com.simats.ashasmartcare.activities.WorkerProfileActivity.class);
+            intent.putExtra("id", worker.getId());
             intent.putExtra("workerName", worker.getName());
             intent.putExtra("workerId", worker.getWorkerId());
             intent.putExtra("village", worker.getVillage());
             intent.putExtra("status", worker.getStatus());
             context.startActivity(intent);
+            if (context instanceof android.app.Activity) {
+                ((android.app.Activity) context).overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }
         });
 
         // Update status badge and action button based on worker status
@@ -70,6 +74,7 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
             holder.btnActive.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
             holder.btnActive.setBackgroundResource(R.drawable.bg_badge_pending);
 
+            holder.btnAction.setVisibility(View.VISIBLE);
             holder.btnAction.setText("Approve");
             holder.btnAction.setTextColor(context.getResources().getColor(android.R.color.white));
             holder.btnAction.setBackgroundResource(R.drawable.bg_button_primary);
@@ -79,20 +84,20 @@ public class WorkerAdapter extends RecyclerView.Adapter<WorkerAdapter.WorkerView
                     listener.onApproveClick(worker);
                 }
             });
-        } else if (worker.isActive()) {
+        } else if ("disabled".equals(worker.getStatus())) {
+            holder.btnActive.setText("Disabled");
+            holder.btnActive.setTextColor(context.getResources().getColor(R.color.status_error));
+            holder.btnActive.setBackgroundResource(R.drawable.bg_red_light);
+
+            // Hide action button - enable/disable managed from WorkerProfileActivity
+            holder.btnAction.setVisibility(View.GONE);
+        } else if (worker.isActive() || "approved".equals(worker.getStatus())) {
             holder.btnActive.setText("Active");
             holder.btnActive.setTextColor(context.getResources().getColor(R.color.success));
             holder.btnActive.setBackgroundResource(R.drawable.bg_green_light);
 
-            holder.btnAction.setText("Deactivate");
-            holder.btnAction.setTextColor(context.getResources().getColor(R.color.error));
-            holder.btnAction.setBackgroundResource(R.drawable.bg_red_light);
-
-            holder.btnAction.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onDeactivateClick(worker);
-                }
-            });
+            // Hide action button for approved workers
+            holder.btnAction.setVisibility(View.GONE);
         }
     }
 

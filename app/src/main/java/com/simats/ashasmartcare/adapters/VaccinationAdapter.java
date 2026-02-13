@@ -30,6 +30,7 @@ public class VaccinationAdapter extends RecyclerView.Adapter<VaccinationAdapter.
 
     public interface OnVaccinationClickListener {
         void onVaccinationClick(Vaccination vaccination);
+
         void onMarkDoneClick(Vaccination vaccination);
     }
 
@@ -51,11 +52,12 @@ public class VaccinationAdapter extends RecyclerView.Adapter<VaccinationAdapter.
         Vaccination vaccination = vaccinationList.get(position);
 
         // Set patient name (assuming it's available in the Vaccination model)
-        holder.tvPatientName.setText(vaccination.getPatientName() != null ? vaccination.getPatientName() : "Unknown Patient");
-        
+        holder.tvPatientName
+                .setText(vaccination.getPatientName() != null ? vaccination.getPatientName() : "Unknown Patient");
+
         // Set vaccine name
         holder.tvVaccineName.setText(vaccination.getVaccineName());
-        
+
         // Format and display due date
         String dueDate = vaccination.getScheduledDate();
         if (dueDate != null && !dueDate.isEmpty()) {
@@ -70,24 +72,37 @@ public class VaccinationAdapter extends RecyclerView.Adapter<VaccinationAdapter.
         }
 
         // Calculate and set status
-        String status = calculateStatus(dueDate);
-        holder.tvStatusBadge.setText(status);
-        
-        // Set status badge background and text color
-        switch (status) {
-            case "overdue":
-                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_risk);
-                holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark));
-                break;
-            case "due soon":
-                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_pending);
-                holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, android.R.color.holo_orange_dark));
-                break;
-            case "upcoming":
-                holder.tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_category);
-                holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, android.R.color.holo_blue_dark));
-                break;
+        String badgeText;
+        int badgeColor;
+        int badgeBg;
+
+        if ("Given".equals(vaccination.getStatus())) {
+            badgeText = "Given";
+            badgeBg = R.drawable.bg_badge_synced; // Green circle/bg
+            badgeColor = ContextCompat.getColor(context, android.R.color.holo_green_dark);
+            holder.btnMarkDone.setVisibility(View.GONE);
+        } else {
+            badgeText = calculateStatus(dueDate);
+            holder.btnMarkDone.setVisibility(View.VISIBLE);
+            switch (badgeText) {
+                case "overdue":
+                    badgeBg = R.drawable.bg_badge_risk;
+                    badgeColor = ContextCompat.getColor(context, android.R.color.holo_red_dark);
+                    break;
+                case "due soon":
+                    badgeBg = R.drawable.bg_badge_pending;
+                    badgeColor = ContextCompat.getColor(context, android.R.color.holo_orange_dark);
+                    break;
+                default: // upcoming
+                    badgeBg = R.drawable.bg_badge_category;
+                    badgeColor = ContextCompat.getColor(context, android.R.color.holo_blue_dark);
+                    break;
+            }
         }
+
+        holder.tvStatusBadge.setText(badgeText);
+        holder.tvStatusBadge.setBackgroundResource(badgeBg);
+        holder.tvStatusBadge.setTextColor(badgeColor);
 
         // Mark Done button click
         holder.btnMarkDone.setOnClickListener(v -> {
@@ -108,15 +123,15 @@ public class VaccinationAdapter extends RecyclerView.Adapter<VaccinationAdapter.
         if (dueDate == null || dueDate.isEmpty()) {
             return "upcoming";
         }
-        
+
         try {
             Date due = inputFormat.parse(dueDate);
             Date today = new Date();
-            
+
             // Calculate difference in days
             long diff = due.getTime() - today.getTime();
             long daysDiff = diff / (1000 * 60 * 60 * 24);
-            
+
             if (daysDiff < 0) {
                 return "overdue";
             } else if (daysDiff <= 7) {

@@ -45,56 +45,7 @@
             android:paddingHorizontal="16dp"
             android:paddingVertical="16dp">
 
-            <!-- APP PREFERENCES Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="APP PREFERENCES"
-                android:textColor="@color/text_hint"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.05" />
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="1dp"
-                app:cardBackgroundColor="@color/white">
-
-                <LinearLayout
-                    android:id="@+id/layoutNotifications"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_notifications"
-                        app:tint="#FF9800" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:text="Notifications"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp" />
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchNotifications"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
 
             <!-- DATA & SYNC Section -->
             <TextView

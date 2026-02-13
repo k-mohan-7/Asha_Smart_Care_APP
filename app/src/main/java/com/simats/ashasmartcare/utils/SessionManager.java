@@ -17,12 +17,17 @@ public class SessionManager {
     private static final String KEY_USER_NAME = "userName";
     private static final String KEY_USER_PHONE = "userPhone";
     private static final String KEY_USER_EMAIL = "userEmail";
+    private static final String KEY_USER_ROLE = "userRole";
     private static final String KEY_WORKER_ID = "workerId";
     private static final String KEY_USER_STATE = "userState";
     private static final String KEY_USER_DISTRICT = "userDistrict";
     private static final String KEY_USER_AREA = "userArea";
     private static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
     private static final String KEY_API_BASE_URL = "apiBaseUrl";
+    private static final String KEY_PROFILE_IMAGE = "profileImage";
+    private static final String KEY_REMEMBER_ME = "rememberMe";
+    private static final String KEY_SAVED_PHONE = "savedPhone";
+    private static final String KEY_SAVED_PASSWORD = "savedPassword";
 
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
@@ -47,12 +52,30 @@ public class SessionManager {
      * Create login session
      */
     public void createLoginSession(long userId, String name, String phone, String email,
-                                   String workerId, String state, String district, String area) {
+            String workerId, String state, String district, String area) {
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.putLong(KEY_USER_ID, userId);
         editor.putString(KEY_USER_NAME, name);
         editor.putString(KEY_USER_PHONE, phone);
         editor.putString(KEY_USER_EMAIL, email);
+        editor.putString(KEY_WORKER_ID, workerId);
+        editor.putString(KEY_USER_STATE, state);
+        editor.putString(KEY_USER_DISTRICT, district);
+        editor.putString(KEY_USER_AREA, area);
+        editor.apply();
+    }
+
+    /**
+     * Create login session with role
+     */
+    public void createLoginSession(long userId, String name, String phone, String email,
+            String workerId, String state, String district, String area, String role) {
+        editor.putBoolean(KEY_IS_LOGGED_IN, true);
+        editor.putLong(KEY_USER_ID, userId);
+        editor.putString(KEY_USER_NAME, name);
+        editor.putString(KEY_USER_PHONE, phone);
+        editor.putString(KEY_USER_EMAIL, email);
+        editor.putString(KEY_USER_ROLE, role);
         editor.putString(KEY_WORKER_ID, workerId);
         editor.putString(KEY_USER_STATE, state);
         editor.putString(KEY_USER_DISTRICT, district);
@@ -71,10 +94,19 @@ public class SessionManager {
      * Logout user
      */
     public void logout() {
-        editor.clear();
+        editor.remove(KEY_IS_LOGGED_IN);
+        editor.remove(KEY_USER_ID);
+        editor.remove(KEY_USER_NAME);
+        editor.remove(KEY_USER_PHONE);
+        editor.remove(KEY_USER_EMAIL);
+        editor.remove(KEY_USER_ROLE);
+        editor.remove(KEY_WORKER_ID);
+        editor.remove(KEY_USER_STATE);
+        editor.remove(KEY_USER_DISTRICT);
+        editor.remove(KEY_USER_AREA);
         editor.apply();
     }
-    
+
     /**
      * Clear session (alias for logout)
      */
@@ -97,6 +129,14 @@ public class SessionManager {
 
     public String getUserEmail() {
         return pref.getString(KEY_USER_EMAIL, "");
+    }
+
+    public String getUserRole() {
+        return pref.getString(KEY_USER_ROLE, "worker");
+    }
+
+    public boolean isAdmin() {
+        return "admin".equals(getUserRole());
     }
 
     public String getWorkerId() {
@@ -125,11 +165,13 @@ public class SessionManager {
             location.append(area);
         }
         if (district != null && !district.isEmpty()) {
-            if (location.length() > 0) location.append(", ");
+            if (location.length() > 0)
+                location.append(", ");
             location.append(district);
         }
         if (state != null && !state.isEmpty()) {
-            if (location.length() > 0) location.append(", ");
+            if (location.length() > 0)
+                location.append(", ");
             location.append(state);
         }
         return location.toString();
@@ -152,7 +194,8 @@ public class SessionManager {
         if (timestamp == 0) {
             return "Never";
         }
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale.getDefault());
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM yyyy, HH:mm",
+                java.util.Locale.getDefault());
         return sdf.format(new java.util.Date(timestamp));
     }
 
@@ -166,6 +209,53 @@ public class SessionManager {
 
     public String getApiBaseUrl() {
         // Default URL for Android Emulator to access localhost
-        return pref.getString(KEY_API_BASE_URL, "http://10.190.92.63/asha_api/");
+        return pref.getString(KEY_API_BASE_URL, "http://192.168.1.69/asha_api/");
+    }
+
+    public void saveString(String key, String value) {
+        editor.putString(key, value);
+        editor.apply();
+    }
+
+    public void saveBoolean(String key, boolean value) {
+        editor.putBoolean(key, value);
+        editor.apply();
+    }
+
+    public String getString(String key, String defaultValue) {
+        return pref.getString(key, defaultValue);
+    }
+
+    public void saveProfileImage(String path) {
+        editor.putString(KEY_PROFILE_IMAGE, path);
+        editor.apply();
+    }
+
+    public String getProfileImage() {
+        return pref.getString(KEY_PROFILE_IMAGE, null);
+    }
+
+    public void setRememberMe(boolean enabled, String phone, String password) {
+        editor.putBoolean(KEY_REMEMBER_ME, enabled);
+        if (enabled) {
+            editor.putString(KEY_SAVED_PHONE, phone);
+            editor.putString(KEY_SAVED_PASSWORD, password);
+        } else {
+            editor.remove(KEY_SAVED_PHONE);
+            editor.remove(KEY_SAVED_PASSWORD);
+        }
+        editor.apply();
+    }
+
+    public boolean isRememberMeEnabled() {
+        return pref.getBoolean(KEY_REMEMBER_ME, false);
+    }
+
+    public String getSavedPhone() {
+        return pref.getString(KEY_SAVED_PHONE, "");
+    }
+
+    public String getSavedPassword() {
+        return pref.getString(KEY_SAVED_PASSWORD, "");
     }
 }

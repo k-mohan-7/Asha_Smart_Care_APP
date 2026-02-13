@@ -16,9 +16,16 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.Request;
 import com.simats.ashasmartcare.R;
-import com.simats.ashasmartcare.adapters.AdminPatientAdapter;
+import com.simats.ashasmartcare.adapters.GroupedPatientAdapter;
 import com.simats.ashasmartcare.models.Patient;
+import com.simats.ashasmartcare.network.ApiHelper;
+import com.simats.ashasmartcare.utils.NetworkUtils;
+import com.simats.ashasmartcare.utils.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +38,11 @@ public class AdminPatientsActivity extends AppCompatActivity {
     private RecyclerView rvPatients;
     private View navDashboard, navPatients, navAlerts, navSettings;
 
-    private AdminPatientAdapter patientAdapter;
-    private List<Patient> patientList;
+    private GroupedPatientAdapter patientAdapter;
+    private List<Object> groupedItems; // Mix of headers and patients
+    
+    private ApiHelper apiHelper;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,9 +56,12 @@ public class AdminPatientsActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_admin_patients);
 
+        apiHelper = ApiHelper.getInstance(this);
+        sessionManager = SessionManager.getInstance(this);
+
         initViews();
         setupRecyclerView();
-        loadSampleData();
+        loadPatients();
         setupListeners();
     }
 
@@ -64,56 +77,93 @@ public class AdminPatientsActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        patientList = new ArrayList<>();
-        patientAdapter = new AdminPatientAdapter(this, patientList);
+        groupedItems = new ArrayList<>();
+        patientAdapter = new GroupedPatientAdapter(this);
         rvPatients.setLayoutManager(new LinearLayoutManager(this));
         rvPatients.setAdapter(patientAdapter);
     }
 
-    private void loadSampleData() {
-        // Sample data matching the design
-        Patient p1 = new Patient();
-        p1.setName("Lakshmi Devi");
-        p1.setHighRisk(true);
-        p1.setCategory("Pregnant");
-        p1.setVillage("Rampur");
-        p1.setAge(28);
-        patientList.add(p1);
+    private void loadPatients() {
+        groupedItems.clear();
+        
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        Patient p2 = new Patient();
-        p2.setName("Rohan Kumar");
-        p2.setHighRisk(true);
-        p2.setCategory("Child");
-        p2.setVillage("Sitapur");
-        p2.setAge(2);
-        patientList.add(p2);
+        // Load from backend API - get all patients grouped by workers
+        String apiUrl = sessionManager.getApiBaseUrl() + "admin.php?action=get_patients";
 
-        Patient p3 = new Patient();
-        p3.setName("Rajesh kumar");
-        p3.setHighRisk(false);
-        p3.setCategory("General");
-        p3.setVillage("Lakhimpur");
-        p3.setAge(45);
-        patientList.add(p3);
+        apiHelper.makeRequest(
+                Request.Method.GET,
+                apiUrl,
+                null,
+                new ApiHelper.ApiCallback() {
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+                            boolean success = response.getBoolean("success");
+                            if (success) {
+                                JSONArray workerGroups = response.optJSONArray("data");
+                                if (workerGroups != null) {
+                                    groupedItems.clear();
+                                    int totalPatients = 0;
+                                    
+                                    // Loop through each worker group
+                                    for (int i = 0; i < workerGroups.length(); i++) {
+                                        JSONObject workerGroup = workerGroups.getJSONObject(i);
+                                        String workerName = workerGroup.optString("worker_name", "Unknown");
+                                        int patientCount = workerGroup.optInt("patient_count", 0);
+                                        JSONArray patients = workerGroup.optJSONArray("patients");
+                                        
+                                        // Add worker header
+                                        groupedItems.add(new GroupedPatientAdapter.WorkerHeader(workerName, patientCount));
+                                        
+                                        // Loop through patients for this worker
+                                        if (patients != null) {
+                                            for (int j = 0; j < patients.length(); j++) {
+                                                JSONObject patientObj = patients.getJSONObject(j);
+                                                
+                                                int id = patientObj.optInt("id", 0);
+                                                String name = patientObj.optString("name", "");
+                                                int age = patientObj.optInt("age", 0);
+                                                String category = patientObj.optString("category", "");
+                                                String address = patientObj.optString("address", "");
+                                                
+                                                // Add patient item
+                                                groupedItems.add(new GroupedPatientAdapter.PatientItem(
+                                                    id, name, age, category, address
+                                                ));
+                                                totalPatients++;
+                                            }
+                                        }
+                                    }
+                                    
+                                    final int finalTotal = totalPatients;
+                                    runOnUiThread(() -> {
+                                        tvTotalCount.setText("Total: " + finalTotal);
+                                        patientAdapter.setData(groupedItems);
+                                    });
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            runOnUiThread(() -> {
+                                Toast.makeText(AdminPatientsActivity.this,
+                                        "Error loading patients", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    }
 
-        Patient p4 = new Patient();
-        p4.setName("Meena Devi");
-        p4.setHighRisk(false);
-        p4.setCategory("General");
-        p4.setVillage("Rampur");
-        p4.setAge(35);
-        patientList.add(p4);
-
-        Patient p5 = new Patient();
-        p5.setName("Baby of Priya");
-        p5.setHighRisk(true);
-        p5.setCategory("Infant");
-        p5.setVillage("Rampur");
-        p5.setAge(0); // 2 weeks
-        patientList.add(p5);
-
-        tvTotalCount.setText("Total: " + patientList.size());
-        patientAdapter.notifyDataSetChanged();
+                    @Override
+                    public void onError(String error) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(AdminPatientsActivity.this,
+                                    "Failed to load patients: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+        );
     }
 
     private void setupListeners() {
@@ -126,7 +176,7 @@ public class AdminPatientsActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                patientAdapter.filter(s.toString());
+                // TODO: Implement search filtering for grouped patients
             }
 
             @Override
@@ -136,7 +186,11 @@ public class AdminPatientsActivity extends AppCompatActivity {
 
         // Bottom navigation
         navDashboard.setOnClickListener(v -> {
-            finish(); // Go back to dashboard
+            Intent intent = new Intent(this, AdminDashboardActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            finish();
         });
 
         navPatients.setOnClickListener(v -> {
@@ -144,11 +198,13 @@ public class AdminPatientsActivity extends AppCompatActivity {
         });
 
         navAlerts.setOnClickListener(v -> {
-            Toast.makeText(this, "Alerts clicked", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, HighRiskAlertsActivity.class));
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         });
 
         navSettings.setOnClickListener(v -> {
-            Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, AdminSettingsActivity.class));
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         });
     }
 }

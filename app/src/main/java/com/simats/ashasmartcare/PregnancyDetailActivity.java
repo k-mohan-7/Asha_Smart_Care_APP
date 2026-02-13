@@ -13,6 +13,7 @@ import androidx.cardview.widget.CardView;
 
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.PregnancyVisit;
+import com.simats.ashasmartcare.utils.NetworkUtils;
 
 public class PregnancyDetailActivity extends AppCompatActivity {
 
@@ -75,6 +76,18 @@ public class PregnancyDetailActivity extends AppCompatActivity {
     }
 
     private void loadVisit() {
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            // ONLINE: Should fetch from backend API
+            Toast.makeText(this, "Backend API for pregnancy detail not yet implemented", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        // OFFLINE: No data available
+        Toast.makeText(this, "⚠️ No internet connection. Cannot load visit details.", Toast.LENGTH_LONG).show();
+        finish();
+        return;
+        
+        /*
         visit = dbHelper.getPregnancyVisitById(visitId);
         
         if (visit == null) {
@@ -84,6 +97,7 @@ public class PregnancyDetailActivity extends AppCompatActivity {
         }
 
         displayVisitDetails();
+        */
     }
 
     private void displayVisitDetails() {

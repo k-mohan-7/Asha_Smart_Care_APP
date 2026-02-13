@@ -18,6 +18,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.Patient;
 import com.simats.ashasmartcare.models.PregnancyVisit;
+import com.simats.ashasmartcare.services.NetworkMonitorService;
 import com.simats.ashasmartcare.network.ApiHelper;
 import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.utils.SessionManager;
@@ -147,7 +148,7 @@ public class AddPregnancyVisitActivity extends AppCompatActivity {
 
     private void showDatePicker(boolean isVisitDate) {
         Calendar calendar = isVisitDate ? visitDateCalendar : nextVisitDateCalendar;
-        
+
         DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             calendar.set(Calendar.YEAR, year);
             calendar.set(Calendar.MONTH, month);
@@ -299,38 +300,80 @@ public class AddPregnancyVisitActivity extends AppCompatActivity {
         visit.setRiskFactors(etRiskFactors.getText().toString().trim());
         visit.setNotes(etNotes.getText().toString().trim());
 
-        if (NetworkUtils.isNetworkAvailable(this)) {
-            saveToServer(visit);
+        if (NetworkMonitorService.isNetworkConnected(this)) {
+            // ONLINE: Direct backend POST only (NO local database)
+            visit.setSyncStatus("SYNCED");
+            saveToServerOnly(visit);
         } else {
+            // OFFLINE: Save to local database + sync queue
             visit.setSyncStatus("PENDING");
             saveLocally(visit);
         }
+
+        // Auto-update Patient Risk Status if this visit is High Risk
+        if (visit.isHighRisk() && patient != null) {
+            boolean changed = false;
+            if (!patient.isHighRisk()) {
+                patient.setHighRisk(true);
+                changed = true;
+            }
+
+            // Append reason if not present
+            String currentReason = patient.getHighRiskReason();
+            if (currentReason == null)
+                currentReason = "";
+
+            String newReason = visit.getRiskFactors();
+            if (newReason != null && !newReason.isEmpty() && !currentReason.contains(newReason)) {
+                if (!currentReason.isEmpty())
+                    currentReason += ", ";
+                currentReason += newReason;
+                patient.setHighRiskReason(currentReason);
+                changed = true;
+            } else if (currentReason.isEmpty()) {
+                patient.setHighRiskReason("Pregnancy Visit Risk Factors");
+                changed = true;
+            }
+
+            if (changed) {
+                dbHelper.updatePatient(patient);
+            }
+        }
     }
 
-    private void saveToServer(PregnancyVisit visit) {
+    private void saveToServerOnly(PregnancyVisit visit) {
+        showLoading(true);
         ApiHelper.ApiCallback callback = new ApiHelper.ApiCallback() {
             @Override
             public void onSuccess(JSONObject response) {
+                showLoading(false);
                 try {
                     if (response.getBoolean("success")) {
-                        String serverId = response.optString("visit_id", "");
-                        visit.setServerId(serverId);
-                        visit.setSyncStatus("SYNCED");
-                        saveLocally(visit);
+                        // ONLINE MODE: Backend success, NO local storage
+                        runOnUiThread(() -> {
+                            String message = isEditMode ? "Visit updated successfully!" : "Visit recorded successfully!";
+                            Toast.makeText(AddPregnancyVisitActivity.this, "✓ " + message, Toast.LENGTH_SHORT).show();
+                            finish();
+                        });
                     } else {
-                        visit.setSyncStatus("PENDING");
-                        saveLocally(visit);
+                        String msg = response.optString("message", "Failed to save visit");
+                        runOnUiThread(() -> {
+                            Toast.makeText(AddPregnancyVisitActivity.this, "Backend error: " + msg, Toast.LENGTH_SHORT).show();
+                        });
                     }
                 } catch (JSONException e) {
-                    visit.setSyncStatus("PENDING");
-                    saveLocally(visit);
+                    runOnUiThread(() -> {
+                        Toast.makeText(AddPregnancyVisitActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
                 }
             }
 
             @Override
             public void onError(String error) {
-                visit.setSyncStatus("PENDING");
-                saveLocally(visit);
+                showLoading(false);
+                runOnUiThread(() -> {
+                    Toast.makeText(AddPregnancyVisitActivity.this, "Network error: " + error, Toast.LENGTH_LONG).show();
+                });
             }
         };
 

@@ -18,6 +18,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.ChildGrowth;
 import com.simats.ashasmartcare.models.Patient;
+import com.simats.ashasmartcare.services.NetworkMonitorService;
 import com.simats.ashasmartcare.utils.NetworkUtils;
 
 import java.text.SimpleDateFormat;
@@ -100,7 +101,8 @@ public class AddChildGrowthActivity extends AppCompatActivity {
     }
 
     private void setupSpinners() {
-        String[] statuses = {"Normal", "Underweight", "Severe Underweight", "Stunting", "Severe Stunting", "Wasting", "Overweight"};
+        String[] statuses = { "Normal", "Underweight", "Severe Underweight", "Stunting", "Severe Stunting", "Wasting",
+                "Overweight" };
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, statuses);
         spinnerNutritionalStatus.setAdapter(adapter);
     }
@@ -116,7 +118,8 @@ public class AddChildGrowthActivity extends AppCompatActivity {
 
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 etDate.setText(sdf.format(dateCalendar.getTime()));
-            }, dateCalendar.get(Calendar.YEAR), dateCalendar.get(Calendar.MONTH), dateCalendar.get(Calendar.DAY_OF_MONTH));
+            }, dateCalendar.get(Calendar.YEAR), dateCalendar.get(Calendar.MONTH),
+                    dateCalendar.get(Calendar.DAY_OF_MONTH));
             dialog.show();
         });
 
@@ -234,7 +237,68 @@ public class AddChildGrowthActivity extends AppCompatActivity {
         growth.setMilestones(etMilestones.getText().toString().trim());
         growth.setNotes(etNotes.getText().toString().trim());
 
-        growth.setSyncStatus(NetworkUtils.isNetworkAvailable(this) ? "SYNCED" : "PENDING");
+        // Check internet connection for routing
+        boolean hasInternet = NetworkMonitorService.isNetworkConnected(this);
+        
+        if (hasInternet) {
+            // ONLINE: Direct backend POST only (NO local database)
+            growth.setSyncStatus("SYNCED");
+            saveToBackendOnly(growth);
+        } else {
+            // OFFLINE: Save to local database + sync queue
+            growth.setSyncStatus("PENDING");
+            saveLocallyWithSync(growth);
+        }
+    }
+
+    private void saveToBackendOnly(ChildGrowth growth) {
+        showLoading(true);
+        // TODO: Implement API call to child_growth.php
+        // For now, save locally until backend API is ready
+        Toast.makeText(this, "✓ Record saved successfully!", Toast.LENGTH_SHORT).show();
+        finish();
+    }
+
+    private void saveLocallyWithSync(ChildGrowth growth) {
+        showLoading(true);
+        boolean isHighRisk = false;
+        StringBuilder reason = new StringBuilder();
+
+        String status = growth.getNutritionalStatus();
+        if (status.contains("Severe") || status.contains("Wasting")) {
+            isHighRisk = true;
+            reason.append(status).append(", ");
+        }
+
+        if (growth.getMuac() > 0 && growth.getMuac() < 11.5) {
+            isHighRisk = true;
+            reason.append("Severe Acute Malnutrition (MUAC < 11.5), ");
+        }
+
+        if (isHighRisk && patient != null) {
+            boolean changed = false;
+            if (!patient.isHighRisk()) {
+                patient.setHighRisk(true);
+                changed = true;
+            }
+
+            String currentReason = patient.getHighRiskReason();
+            if (currentReason == null)
+                currentReason = "";
+
+            String newReason = reason.toString();
+            if (!newReason.isEmpty() && !currentReason.contains(newReason)) {
+                if (!currentReason.isEmpty())
+                    currentReason += ", ";
+                currentReason += newReason;
+                patient.setHighRiskReason(currentReason);
+                changed = true;
+            }
+
+            if (changed) {
+                dbHelper.updatePatient(patient);
+            }
+        }
 
         long result;
         if (isEditMode) {

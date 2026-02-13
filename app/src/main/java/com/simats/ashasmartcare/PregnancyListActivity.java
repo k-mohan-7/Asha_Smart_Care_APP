@@ -152,10 +152,78 @@ public class PregnancyListActivity extends AppCompatActivity implements Pregnanc
     }
 
     private void loadFromLocal() {
-        pregnancyList.clear();
-        pregnancyList.addAll(dbHelper.getPregnancyVisitsByPatientId(patientId));
-        updateUI();
-        showLoading(false);
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            // ONLINE: Fetch from backend API
+            fetchPregnancyVisitsFromBackend();
+        } else {
+            // OFFLINE: Show no internet message
+            showLoading(false);
+            swipeRefresh.setRefreshing(false);
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load pregnancy visits.", Toast.LENGTH_LONG).show();
+            pregnancyList.clear();
+            updateUI();
+        }
+    }
+    
+    private void fetchPregnancyVisitsFromBackend() {
+        apiHelper.makeGetRequest("pregnancy_visits.php?patient_id=" + patientId, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    if (response.getBoolean("success")) {
+                        JSONArray visitsArray = response.getJSONArray("data");
+                        pregnancyList.clear();
+                        
+                        for (int i = 0; i < visitsArray.length(); i++) {
+                            JSONObject visitObj = visitsArray.getJSONObject(i);
+                            PregnancyVisit visit = new PregnancyVisit();
+                            visit.setServerId(visitObj.getInt("id"));
+                            visit.setPatientId(visitObj.getInt("patient_id"));
+                            visit.setVisitDate(visitObj.getString("visit_date"));
+                            visit.setGestationalWeeks(visitObj.getInt("gestational_weeks"));
+                            visit.setWeight(visitObj.getDouble("weight"));
+                            visit.setBloodPressure(visitObj.optString("blood_pressure", ""));
+                            visit.setHemoglobin(visitObj.optDouble("hemoglobin", 0));
+                            visit.setFetalHeartRate(visitObj.optInt("fetal_heart_rate", 0));
+                            visit.setUrineProtein(visitObj.optString("urine_protein", ""));
+                            visit.setUrineSugar(visitObj.optString("urine_sugar", ""));
+                            visit.setHighRisk(visitObj.optInt("is_high_risk", 0) == 1);
+                            visit.setHighRiskReason(visitObj.optString("high_risk_reason", ""));
+                            visit.setNotes(visitObj.optString("notes", ""));
+                            pregnancyList.add(visit);
+                        }
+                        
+                        runOnUiThread(() -> {
+                            updateUI();
+                            showLoading(false);
+                            swipeRefresh.setRefreshing(false);
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            swipeRefresh.setRefreshing(false);
+                            Toast.makeText(PregnancyListActivity.this, "Failed to load visits", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
+                        Toast.makeText(PregnancyListActivity.this, "Error parsing data", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    swipeRefresh.setRefreshing(false);
+                    Toast.makeText(PregnancyListActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     private void updateUI() {

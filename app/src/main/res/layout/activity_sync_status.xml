@@ -3,42 +3,43 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F8F9FA">
+    android:background="#FFFFFF"
+    android:orientation="vertical">
 
     <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
         android:gravity="center_vertical"
-        android:background="@android:color/white"
-        android:elevation="2dp">
+        android:orientation="horizontal"
+        android:padding="16dp">
 
         <ImageView
             android:id="@+id/ivBack"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_arrow_back"
-            app:tint="#111827" />
+            app:tint="#1F2937" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="Sync Status"
+            android:gravity="center"
+            android:text="Data Sync"
             android:textColor="#111827"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:gravity="center" />
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <View
             android:layout_width="24dp"
             android:layout_height="24dp" />
-
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#F3F4F6" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -48,229 +49,140 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:padding="16dp">
 
-            <!-- Stats Cards -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <!-- Total ASHAs Card -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cardTotal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total ASHAs"
-                            android:textColor="#6B7280"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/tvTotalAshas"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="150"
-                            android:textColor="#111827"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-                <!-- Synced Card -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cardSynced"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Synced"
-                            android:textColor="#6B7280"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/tvSynced"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="148"
-                            android:textColor="#3B82F6"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-            </LinearLayout>
-
-            <!-- Delayed Card -->
+            <!-- Summary Card -->
             <androidx.cardview.widget.CardView
-                android:id="@+id/cardDelayed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/bg_sync_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Delayed"
-                        android:textColor="#6B7280"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:id="@+id/tvDelayed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="2"
-                        android:textColor="#F59E0B"
-                        android:textSize="28sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Search Bar -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="#F3F4F6">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_search"
-                        app:tint="#9CA3AF" />
-
-                    <EditText
-                        android:id="@+id/etSearch"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:hint="Search by ASHA name"
-                        android:textColorHint="#9CA3AF"
-                        android:textColor="#111827"
-                        android:textSize="14sp"
-                        android:background="@android:color/transparent"
-                        android:inputType="text" />
+                        android:orientation="vertical">
 
+                        <TextView
+                            android:id="@+id/tvLastSynced"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last synced: 2 hours ago"
+                            android:textColor="#1D4ED8"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvPendingCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="3 records pending upload"
+                            android:textColor="#3B82F6"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnSyncNow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_button_sync_now"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="12dp">
+
+                        <ImageView
+                            android:id="@+id/ivSyncIcon"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_sync"
+                            app:tint="@color/white" />
+
+                        <ProgressBar
+                            android:id="@+id/pbSyncing"
+                            style="?android:attr/progressBarStyleSmall"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:indeterminateTint="@color/white"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tvSyncButtonText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Sync Now"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
 
-            <!-- Filter Chips -->
-            <HorizontalScrollView
+            <!-- Pending Records Section Header -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:scrollbars="none">
+                android:layout_marginBottom="16dp">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
+                    android:layout_centerVertical="true"
+                    android:text="Pending Records"
+                    android:textColor="#4B5563"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/chipAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="All (150)"
-                        android:textColor="@android:color/white"
-                        android:background="@drawable/bg_button_primary"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:textSize="13sp"
-                        android:layout_marginEnd="8dp" />
+                <TextView
+                    android:id="@+id/btnClearAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="4dp"
+                    android:text="Clear All"
+                    android:textColor="#EF4444"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
-                    <TextView
-                        android:id="@+id/chipSynced"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Synced (148)"
-                        android:textColor="#6B7280"
-                        android:background="@drawable/bg_gray_light"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:textSize="13sp"
-                        android:layout_marginEnd="8dp" />
+            </RelativeLayout>
 
-                    <TextView
-                        android:id="@+id/chipDelayed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Delayed (2)"
-                        android:textColor="#6B7280"
-                        android:background="@drawable/bg_gray_light"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:textSize="13sp" />
-
-                </LinearLayout>
-
-            </HorizontalScrollView>
-
-            <!-- Workers List -->
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvSyncWorkers"
+                android:id="@+id/rvPending"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false" />
 
+
+
+            <!-- Footer Message -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:text="App automatically syncs when internet is available."
+                android:textColor="#9CA3AF"
+                android:textSize="13sp" />
+
         </LinearLayout>
-
     </ScrollView>
-
 </LinearLayout>

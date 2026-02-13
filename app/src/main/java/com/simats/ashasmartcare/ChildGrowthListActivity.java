@@ -18,7 +18,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.simats.ashasmartcare.adapters.ChildGrowthAdapter;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.ChildGrowth;
+import com.simats.ashasmartcare.network.ApiHelper;
+import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.models.Patient;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +43,7 @@ public class ChildGrowthListActivity extends AppCompatActivity implements ChildG
     private List<ChildGrowth> growthList;
 
     private DatabaseHelper dbHelper;
+    private ApiHelper apiHelper;
     private long patientId;
     private Patient patient;
 
@@ -69,6 +76,7 @@ public class ChildGrowthListActivity extends AppCompatActivity implements ChildG
         fabAdd = findViewById(R.id.fabAdd);
 
         dbHelper = DatabaseHelper.getInstance(this);
+        apiHelper = ApiHelper.getInstance(this);
         growthList = new ArrayList<>();
 
         patient = dbHelper.getPatientById(patientId);
@@ -97,11 +105,74 @@ public class ChildGrowthListActivity extends AppCompatActivity implements ChildG
 
     private void loadData() {
         showLoading(true);
-        growthList.clear();
-        growthList.addAll(dbHelper.getChildGrowthByPatient(patientId));
-        updateUI();
-        showLoading(false);
-        swipeRefresh.setRefreshing(false);
+        
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            // ONLINE: Fetch from backend API
+            fetchChildGrowthFromBackend();
+        } else {
+            // OFFLINE: Show no internet message
+            showLoading(false);
+            swipeRefresh.setRefreshing(false);
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load growth records.", Toast.LENGTH_LONG).show();
+            growthList.clear();
+            updateUI();
+        }
+    }
+    
+    private void fetchChildGrowthFromBackend() {
+        apiHelper.makeGetRequest("child_growth.php?patient_id=" + patientId, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    if (response.getBoolean("success")) {
+                        JSONArray growthArray = response.getJSONArray("data");
+                        growthList.clear();
+                        
+                        for (int i = 0; i < growthArray.length(); i++) {
+                            JSONObject growthObj = growthArray.getJSONObject(i);
+                            ChildGrowth growth = new ChildGrowth();
+                            growth.setServerId(growthObj.getInt("id"));
+                            growth.setPatientId(growthObj.getInt("patient_id"));
+                            growth.setRecordDate(growthObj.getString("record_date"));
+                            growth.setWeight((float)growthObj.getDouble("weight"));
+                            growth.setHeight((float)growthObj.getDouble("height"));
+                            growth.setHeadCircumference((float)growthObj.optDouble("head_circumference", 0));
+                            growth.setGrowthStatus(growthObj.optString("growth_status", ""));
+                            growth.setNotes(growthObj.optString("notes", ""));
+                            growthList.add(growth);
+                        }
+                        
+                        runOnUiThread(() -> {
+                            updateUI();
+                            showLoading(false);
+                            swipeRefresh.setRefreshing(false);
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            swipeRefresh.setRefreshing(false);
+                            Toast.makeText(ChildGrowthListActivity.this, "Failed to load growth records", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
+                        Toast.makeText(ChildGrowthListActivity.this, "Error parsing data", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    swipeRefresh.setRefreshing(false);
+                    Toast.makeText(ChildGrowthListActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     private void updateUI() {

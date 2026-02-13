@@ -38,9 +38,15 @@
                 android:textStyle="bold"
                 android:gravity="center" />
 
-            <View
+            <ImageView
+                android:id="@+id/ivEditProfile"
                 android:layout_width="24dp"
-                android:layout_height="24dp" />
+                android:layout_height="24dp"
+                android:src="@drawable/ic_edit"
+                app:tint="#111827"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
 
         </LinearLayout>
 
@@ -281,6 +287,7 @@
                     app:tint="#DC2626" />
 
                 <TextView
+                    android:id="@+id/tvDisableButtonText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"

@@ -29,14 +29,8 @@ public class Patient {
     @SerializedName("phone")
     private String phone;
 
-    @SerializedName("state")
-    private String state;
-
-    @SerializedName("district")
-    private String district;
-
-    @SerializedName("area")
-    private String area;
+    @SerializedName("address")
+    private String address;
 
     @SerializedName("category")
     private String category;
@@ -46,33 +40,27 @@ public class Patient {
 
     @SerializedName("photo_path")
     private String photoPath;
-    
+
     @SerializedName("is_high_risk")
     private boolean isHighRisk;
-    
+
     @SerializedName("high_risk_reason")
     private String highRiskReason;
-    
+
     @SerializedName("blood_group")
     private String bloodGroup;
-    
-    @SerializedName("address")
-    private String address;
-    
-    @SerializedName("village")
-    private String village;
-    
-    @SerializedName("emergency_contact")
-    private String emergencyContact;
-    
+
     @SerializedName("medical_history")
     private String medicalHistory;
-    
+
     @SerializedName("asha_id")
     private String ashaId;
-    
+
     @SerializedName("registration_date")
     private String registrationDate;
+
+    @SerializedName("abha_id")
+    private String abhaId;
 
     @SerializedName("sync_status")
     private String syncStatus;
@@ -154,28 +142,12 @@ public class Patient {
         this.phone = phone;
     }
 
-    public String getState() {
-        return state;
+    public String getAddress() {
+        return address;
     }
 
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getDistrict() {
-        return district;
-    }
-
-    public void setDistrict(String district) {
-        this.district = district;
-    }
-
-    public String getArea() {
-        return area;
-    }
-
-    public void setArea(String area) {
-        this.area = area;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getCategory() {
@@ -226,100 +198,67 @@ public class Patient {
         this.lastUpdated = lastUpdated;
     }
 
-    // Helper method to get full location
-    public String getFullLocation() {
-        StringBuilder location = new StringBuilder();
-        if (area != null && !area.isEmpty()) {
-            location.append(area);
-        }
-        if (district != null && !district.isEmpty()) {
-            if (location.length() > 0) location.append(", ");
-            location.append(district);
-        }
-        if (state != null && !state.isEmpty()) {
-            if (location.length() > 0) location.append(", ");
-            location.append(state);
-        }
-        return location.toString();
-    }
-    
     public boolean isHighRisk() {
         return isHighRisk;
     }
-    
+
     public void setHighRisk(boolean highRisk) {
         isHighRisk = highRisk;
     }
-    
+
     public String getHighRiskReason() {
         return highRiskReason;
     }
-    
+
     public void setHighRiskReason(String highRiskReason) {
         this.highRiskReason = highRiskReason;
     }
-    
+
     public String getBloodGroup() {
         return bloodGroup;
     }
-    
+
     public void setBloodGroup(String bloodGroup) {
         this.bloodGroup = bloodGroup;
     }
-    
-    public String getAddress() {
-        return address;
-    }
-    
-    public void setAddress(String address) {
-        this.address = address;
-    }
-    
-    public String getVillage() {
-        return village;
-    }
-    
-    public void setVillage(String village) {
-        this.village = village;
-    }
-    
-    public String getEmergencyContact() {
-        return emergencyContact;
-    }
-    
-    public void setEmergencyContact(String emergencyContact) {
-        this.emergencyContact = emergencyContact;
-    }
-    
+
     public String getMedicalHistory() {
         return medicalHistory;
     }
-    
+
     public void setMedicalHistory(String medicalHistory) {
         this.medicalHistory = medicalHistory;
     }
-    
+
     public String getAshaId() {
         return ashaId;
     }
-    
+
     public void setAshaId(String ashaId) {
         this.ashaId = ashaId;
     }
-    
+
     public String getRegistrationDate() {
         return registrationDate;
     }
-    
+
     public void setRegistrationDate(String registrationDate) {
         this.registrationDate = registrationDate;
     }
-    
+
+    public String getAbhaId() {
+        return abhaId;
+    }
+
+    public void setAbhaId(String abhaId) {
+        this.abhaId = abhaId;
+    }
+
     // ID alias
     public long getId() {
         return localId;
     }
-    
+
     public void setId(long id) {
         this.localId = id;
     }

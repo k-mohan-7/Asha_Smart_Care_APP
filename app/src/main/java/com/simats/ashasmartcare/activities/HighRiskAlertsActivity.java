@@ -12,9 +12,16 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.Request;
 import com.simats.ashasmartcare.R;
 import com.simats.ashasmartcare.adapters.HighRiskAlertAdapter;
 import com.simats.ashasmartcare.models.HighRiskAlert;
+import com.simats.ashasmartcare.network.ApiHelper;
+import com.simats.ashasmartcare.utils.NetworkUtils;
+import com.simats.ashasmartcare.utils.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +34,8 @@ public class HighRiskAlertsActivity extends AppCompatActivity {
 
     private HighRiskAlertAdapter alertAdapter;
     private List<HighRiskAlert> alertList;
+    private ApiHelper apiHelper;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,9 +49,12 @@ public class HighRiskAlertsActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_high_risk_alerts);
 
+        apiHelper = ApiHelper.getInstance(this);
+        sessionManager = SessionManager.getInstance(this);
+
         initViews();
         setupRecyclerView();
-        loadSampleData();
+        loadHighRiskPatients();
         setupListeners();
     }
 
@@ -63,18 +75,75 @@ public class HighRiskAlertsActivity extends AppCompatActivity {
         rvAlerts.setAdapter(alertAdapter);
     }
 
-    private void loadSampleData() {
-        // Sample data matching the design
-        alertList.add(new HighRiskAlert("Priya Sharma", "Rampur Village", "High BP"));
-        alertList.add(new HighRiskAlert("Anjali Devi", "Sujanpur Village", "Malnutrition"));
-        alertList.add(new HighRiskAlert("Rajesh Kumar", "Madhavpur", "High BP"));
+    private void loadHighRiskPatients() {
+        alertList.clear();
+        
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Reviewed alert
-        HighRiskAlert reviewed = new HighRiskAlert("Sunita Singh", "Devgarh Village", "Malnutrition");
-        reviewed.setReviewed(true);
-        alertList.add(reviewed);
+        // Load from backend API - get high-risk patients from all ASHA workers
+        String apiUrl = sessionManager.getApiBaseUrl() + "admin.php?action=get_high_risk_patients";
 
-        alertAdapter.notifyDataSetChanged();
+        apiHelper.makeRequest(
+                Request.Method.GET,
+                apiUrl,
+                null,
+                new ApiHelper.ApiCallback() {
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+                            boolean success = response.getBoolean("success");
+                            if (success) {
+                                JSONArray patients = response.optJSONArray("data");
+                                if (patients != null) {
+                                    alertList.clear();
+                                    for (int i = 0; i < patients.length(); i++) {
+                                        JSONObject patientObj = patients.getJSONObject(i);
+                                        
+                                        int id = patientObj.optInt("id", 0);
+                                        String name = patientObj.optString("name", "");
+                                        String address = patientObj.optString("address", "");
+                                        String severity = patientObj.optString("severity", "low");
+                                        String ashaWorker = patientObj.optString("asha_worker", "Unknown");
+                                        int alertCount = patientObj.optInt("alert_count", 0);
+                                        
+                                        // Create alert with severity as alert type
+                                        String alertType = severity.toUpperCase() + " Risk (" + alertCount + " alerts)";
+                                        String location = address + " - ASHA: " + ashaWorker;
+                                        
+                                        HighRiskAlert alert = new HighRiskAlert(id, name, location, alertType);
+                                        alertList.add(alert);
+                                    }
+                                    
+                                    runOnUiThread(() -> {
+                                        alertAdapter.notifyDataSetChanged();
+                                        if (alertList.isEmpty()) {
+                                            Toast.makeText(HighRiskAlertsActivity.this,
+                                                    "No high-risk patients", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            runOnUiThread(() -> {
+                                Toast.makeText(HighRiskAlertsActivity.this,
+                                        "Error loading alerts", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(HighRiskAlertsActivity.this,
+                                    "Failed to load alerts: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+        );
     }
 
     private void setupListeners() {
@@ -82,17 +151,21 @@ public class HighRiskAlertsActivity extends AppCompatActivity {
 
         ivRefresh.setOnClickListener(v -> {
             Toast.makeText(this, "Refreshing alerts...", Toast.LENGTH_SHORT).show();
-            // TODO: Implement actual refresh logic
+            loadHighRiskPatients();
         });
 
         // Bottom navigation
         navDashboard.setOnClickListener(v -> {
-            finish(); // Go back to dashboard
+            Intent intent = new Intent(this, AdminDashboardActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            finish();
         });
 
         navPatients.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AdminPatientsActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, AdminPatientsActivity.class));
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         });
 
         navAlerts.setOnClickListener(v -> {
@@ -100,7 +173,8 @@ public class HighRiskAlertsActivity extends AppCompatActivity {
         });
 
         navSettings.setOnClickListener(v -> {
-            Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, AdminSettingsActivity.class));
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         });
     }
 }

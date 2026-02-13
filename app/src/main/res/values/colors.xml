@@ -26,9 +26,14 @@
     
     <!-- Status Colors -->
     <color name="status_synced">#4CAF50</color>
+    <color name="status_synced_bg">#DCFCE7</color>
+    <color name="status_synced_text">#166534</color>
     <color name="status_pending">#FF9800</color>
+    <color name="status_pending_bg">#FEF3C7</color>
+    <color name="status_pending_text">#92400E</color>
     <color name="status_error">#F44336</color>
     <color name="status_warning">#FFC107</color>
+    <color name="bg_sync_card">#EFF6FF</color>
     
     <!-- Dashboard Card Colors -->
     <color name="card_patients">#42A5F5</color>

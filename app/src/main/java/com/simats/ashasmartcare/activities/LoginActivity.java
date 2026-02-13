@@ -7,6 +7,7 @@ import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -31,6 +32,7 @@ import org.json.JSONObject;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etPhone, etPassword;
+    private CheckBox cbRememberMe;
     private Button btnLogin;
     private TextView tvCreateAccount, tvForgotPassword, tvHelp;
     private ImageView ivTogglePassword;
@@ -46,20 +48,28 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        initViews();
         initHelpers();
+        initViews();
         setupListeners();
     }
 
     private void initViews() {
         etPhone = findViewById(R.id.et_phone);
         etPassword = findViewById(R.id.et_password);
+        cbRememberMe = findViewById(R.id.cb_remember_me);
         btnLogin = findViewById(R.id.btn_login);
         tvCreateAccount = findViewById(R.id.tv_create_account);
         tvForgotPassword = findViewById(R.id.tv_forgot_password);
         tvHelp = findViewById(R.id.tv_help);
         ivTogglePassword = findViewById(R.id.iv_toggle_password);
         progressBar = findViewById(R.id.progress_bar);
+
+        // Auto-fill credentials if "Remember Me" is enabled
+        if (sessionManager.isRememberMeEnabled()) {
+            etPhone.setText(sessionManager.getSavedPhone());
+            etPassword.setText(sessionManager.getSavedPassword());
+            cbRememberMe.setChecked(true);
+        }
     }
 
     private void initHelpers() {
@@ -86,7 +96,8 @@ public class LoginActivity extends AppCompatActivity {
         tvForgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(LoginActivity.this, "Contact administrator to reset password", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Contact administrator to reset password", Toast.LENGTH_SHORT)
+                        .show();
             }
         });
 
@@ -176,9 +187,34 @@ public class LoginActivity extends AppCompatActivity {
                     boolean success = response.getBoolean("success");
                     if (success) {
                         // API returns user data in "data" field, not "user"
-                        JSONObject user = response.has("data") ? response.getJSONObject("data") : response.getJSONObject("user");
+                        JSONObject user = response.has("data") ? response.getJSONObject("data")
+                                : response.getJSONObject("user");
+
+                        // Check worker status - only active/approved can log in
+                        String status = user.optString("status", user.optString("account_status", "pending"));
                         
-                        // Save user session with server data
+                        // Check if account is disabled
+                        if ("disabled".equalsIgnoreCase(status) || "deactivated".equalsIgnoreCase(status)) {
+                            showLoading(false);
+                            Intent intent = new Intent(LoginActivity.this, DisabledAccountActivity.class);
+                            intent.putExtra("phone", phoneOrWorkerId);
+                            intent.putExtra("name", user.optString("name", ""));
+                            startActivity(intent);
+                            return;
+                        }
+                        
+                        // Check if account is pending or rejected
+                        if (!"active".equalsIgnoreCase(status) && !"approved".equalsIgnoreCase(status)) {
+                            // Account pending approval or rejected
+                            showLoading(false);
+                            Intent intent = new Intent(LoginActivity.this, PendingApprovalActivity.class);
+                            intent.putExtra("phone", phoneOrWorkerId);
+                            intent.putExtra("name", user.optString("name", ""));
+                            startActivity(intent);
+                            return;
+                        }
+
+                        // Save user session with server data including role
                         sessionManager.createLoginSession(
                                 user.optLong("id", 0),
                                 user.optString("name", ""),
@@ -187,10 +223,16 @@ public class LoginActivity extends AppCompatActivity {
                                 user.optString("asha_id", ""), // Use asha_id as worker_id
                                 user.optString("state", ""),
                                 user.optString("district", ""),
-                                user.optString("village", "") // Use village as area
+                                user.optString("village", ""), // Use village as area
+                                user.optString("role", "worker") // Get role from server
                         );
 
+                        // Save or clear remembered credentials
+                        sessionManager.setRememberMe(cbRememberMe.isChecked(), phoneOrWorkerId, password);
+
                         // Save to local DB for offline login capability
+                        // Update status in local DB too
+                        dbHelper.updateUserStatus(phoneOrWorkerId, status);
                         dbHelper.setUserLoggedIn(phoneOrWorkerId, true);
 
                         Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
@@ -198,12 +240,13 @@ public class LoginActivity extends AppCompatActivity {
                     } else {
                         String message = response.optString("message", "Login failed");
                         Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
-                        
+
                         // Try offline login as fallback
                         loginOffline(phoneOrWorkerId, password);
                     }
                 } catch (JSONException e) {
-                    Toast.makeText(LoginActivity.this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_SHORT)
+                            .show();
                     loginOffline(phoneOrWorkerId, password);
                 }
             }
@@ -211,7 +254,23 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 showLoading(false);
-                Toast.makeText(LoginActivity.this, "Network error. Trying offline login...", Toast.LENGTH_SHORT).show();
+
+                // Check if error is about pending admin approval
+                if (errorMessage != null &&
+                        (errorMessage.toLowerCase().contains("pending") &&
+                                errorMessage.toLowerCase().contains("approval"))) {
+                    // Navigate to Pending Approval page
+                    Intent intent = new Intent(LoginActivity.this, PendingApprovalActivity.class);
+                    intent.putExtra("phone", phoneOrWorkerId);
+                    intent.putExtra("name", ""); // Name not available yet
+                    startActivity(intent);                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out);                    return;
+                }
+
+                // For other errors, show error message and try offline
+                String attemptedUrl = sessionManager.getApiBaseUrl();
+                Toast.makeText(LoginActivity.this,
+                        "Login failed: " + errorMessage + "\nTrying offline...",
+                        Toast.LENGTH_LONG).show();
                 loginOffline(phoneOrWorkerId, password);
             }
         });
@@ -219,14 +278,14 @@ public class LoginActivity extends AppCompatActivity {
 
     private void loginOffline(String phoneOrWorkerId, String password) {
         showLoading(false);
-        
+
         // Validate from local database (supports both phone and worker_id)
         boolean isValid = dbHelper.validateUser(phoneOrWorkerId, password);
-        
+
         if (isValid) {
             // Set login status
             dbHelper.setUserLoggedIn(phoneOrWorkerId, true);
-            
+
             // Create basic session (limited info in offline mode)
             sessionManager.createLoginSession(
                     0, // No server ID in offline mode
@@ -236,9 +295,11 @@ public class LoginActivity extends AppCompatActivity {
                     "",
                     "",
                     "",
-                    ""
-            );
-            
+                    "");
+
+            // Save or clear remembered credentials
+            sessionManager.setRememberMe(cbRememberMe.isChecked(), phoneOrWorkerId, password);
+
             Toast.makeText(this, "Logged in offline", Toast.LENGTH_SHORT).show();
             navigateToHome();
         } else {
@@ -247,7 +308,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void navigateToHome() {
-        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+        // Check user role and navigate to appropriate dashboard
+        Intent intent;
+        if (sessionManager.isAdmin()) {
+            // Admin user - go to Admin Dashboard
+            intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
+        } else {
+            // Worker user - go to Worker Home
+            intent = new Intent(LoginActivity.this, HomeActivity.class);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

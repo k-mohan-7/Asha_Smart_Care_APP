@@ -1,6 +1,10 @@
 package com.simats.ashasmartcare.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +19,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.simats.ashasmartcare.R;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.services.SyncService;
+import com.simats.ashasmartcare.services.NetworkMonitorService;
+import com.simats.ashasmartcare.utils.ConnectionStatusManager;
 import com.simats.ashasmartcare.utils.NetworkUtils;
 import com.simats.ashasmartcare.utils.SessionManager;
 import com.simats.ashasmartcare.PatientsActivity;
@@ -31,10 +37,15 @@ import com.simats.ashasmartcare.SettingsActivity;
  * Home Activity - Main Dashboard
  * Modern UI with stats cards and navigation
  */
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends BaseActivity {
+
+    @Override
+    protected int getNavItemId() {
+        return R.id.nav_home;
+    }
 
     private TextView tvUserName, tvVillage, tvConnectionStatus;
-    private TextView tvVisitsToday, tvHighRisk, tvPendingSync;
+    private TextView tvVisitsToday, tvHighRisk;
     private CardView badgeConnection;
     private CardView cardNewPatient, cardPatients, cardVaccinations;
     private CardView cardAIInsights, cardSync, cardSettings;
@@ -42,6 +53,9 @@ public class HomeActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
+    private ConnectionStatusManager connectionStatusManager;
+    private BroadcastReceiver networkReceiver;
+    private BroadcastReceiver syncUpdateReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,16 +64,47 @@ public class HomeActivity extends AppCompatActivity {
 
         initViews();
         initHelpers();
+        setupNetworkMonitoring();
         setupListeners();
         loadUserData();
         checkOnlineMode();
+        initSyncReceiver();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        
+        // Clean up old synced records to prevent stale warnings
+        dbHelper.cleanupOldSyncedRecords();
+        
         updateDashboard();
         checkOnlineMode();
+
+        // Register sync receiver
+        IntentFilter syncFilter = new IntentFilter();
+        syncFilter.addAction("com.simats.ashasmartcare.SYNC_UPDATE");
+        syncFilter.addAction("com.simats.ashasmartcare.SYNC_FINISHED");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(syncUpdateReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(syncUpdateReceiver, syncFilter);
+        }
+    }
+
+    protected void onPause() {
+        super.onPause();
+        if (syncUpdateReceiver != null) {
+            unregisterReceiver(syncUpdateReceiver);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (networkReceiver != null) {
+            unregisterReceiver(networkReceiver);
+        }
     }
 
     private void initViews() {
@@ -70,7 +115,6 @@ public class HomeActivity extends AppCompatActivity {
 
         tvVisitsToday = findViewById(R.id.tv_visits_today);
         tvHighRisk = findViewById(R.id.tv_high_risk);
-        tvPendingSync = findViewById(R.id.tv_pending_sync);
 
         cardNewPatient = findViewById(R.id.card_new_patient);
         cardPatients = findViewById(R.id.card_patients);
@@ -80,11 +124,67 @@ public class HomeActivity extends AppCompatActivity {
         cardSettings = findViewById(R.id.card_settings);
 
         bottomNavigation = findViewById(R.id.bottom_navigation);
+
+        // Header stat cards
+        findViewById(R.id.card_visits_stat).setOnClickListener(
+                v -> startActivity(new Intent(this, VisitHistoryActivity.class)));
+        findViewById(R.id.card_high_risk_stat).setOnClickListener(
+                v -> startActivity(new Intent(this, PatientAlertsActivity.class)));
     }
 
     private void initHelpers() {
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = SessionManager.getInstance(this);
+        connectionStatusManager = ConnectionStatusManager.getInstance(this);
+    }
+
+    private void setupNetworkMonitoring() {
+        // Start network monitoring service
+        Intent serviceIntent = new Intent(this, NetworkMonitorService.class);
+        startService(serviceIntent);
+
+        // Set initial network state
+        boolean isConnected = NetworkMonitorService.isNetworkConnected(this);
+        connectionStatusManager.setInitialState(isConnected);
+
+        // Register broadcast receiver for network changes
+        networkReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                boolean isConnected = intent.getBooleanExtra(
+                        NetworkMonitorService.EXTRA_IS_CONNECTED, false);
+                connectionStatusManager.showNetworkStatus(isConnected);
+                checkOnlineMode();
+            }
+        };
+
+        IntentFilter filter = new IntentFilter(NetworkMonitorService.ACTION_NETWORK_CHANGED);
+
+        // Android 13+ requires explicit receiver export flag
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(networkReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(networkReceiver, filter);
+        }
+    }
+
+    private void initSyncReceiver() {
+        syncUpdateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if ("com.simats.ashasmartcare.SYNC_FINISHED".equals(action)) {
+                    // Full refresh after sync completes
+                    runOnUiThread(() -> {
+                        updateDashboard();
+                        android.util.Log.d("HomeActivity", "Dashboard refreshed after sync completion");
+                    });
+                } else if ("com.simats.ashasmartcare.SYNC_UPDATE".equals(action)) {
+                    // Incremental update during sync
+                    runOnUiThread(() -> updateDashboard());
+                }
+            }
+        };
     }
 
     private void setupListeners() {
@@ -116,31 +216,7 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(new Intent(this, SettingsActivity.class));
         });
 
-        bottomNavigation
-                .setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        int id = item.getItemId();
-
-                        if (id == R.id.nav_home) {
-                            return true;
-                        } else if (id == R.id.nav_profile) {
-                            startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
-                            return true;
-                        } else if (id == R.id.nav_visits) {
-                            startActivity(new Intent(HomeActivity.this, VisitHistoryActivity.class));
-                            return true;
-                        } else if (id == R.id.nav_alerts) {
-                            startActivity(new Intent(HomeActivity.this, PatientAlertsActivity.class));
-                            return true;
-                        }
-
-                        return false;
-                    }
-                });
-
-        // Set home as selected
-        bottomNavigation.setSelectedItemId(R.id.nav_home);
+        // Bottom navigation is handled by BaseActivity
     }
 
     private void loadUserData() {
@@ -185,6 +261,9 @@ public class HomeActivity extends AppCompatActivity {
             tvConnectionStatus.setText("Online");
             tvConnectionStatus.setTextColor(getResources().getColor(R.color.status_synced));
 
+            // Clean up old synced records first
+            dbHelper.cleanupOldSyncedRecords();
+            
             // Auto-sync if there are pending records
             int pendingCount = dbHelper.getTotalPendingRecords();
             if (pendingCount > 0) {
@@ -204,10 +283,6 @@ public class HomeActivity extends AppCompatActivity {
         // Update high risk count
         int highRiskCount = dbHelper.getHighRiskPatientsCount();
         tvHighRisk.setText(String.valueOf(highRiskCount));
-
-        // Update pending sync count
-        int pendingCount = dbHelper.getTotalPendingRecords();
-        tvPendingSync.setText(String.valueOf(pendingCount));
     }
 
     private void performSync() {

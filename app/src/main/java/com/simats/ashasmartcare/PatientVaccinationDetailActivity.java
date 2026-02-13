@@ -21,6 +21,12 @@ import com.google.android.material.tabs.TabLayout;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.Patient;
 import com.simats.ashasmartcare.models.Vaccination;
+import com.simats.ashasmartcare.network.ApiHelper;
+import com.simats.ashasmartcare.utils.NetworkUtils;
+import com.simats.ashasmartcare.utils.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,8 +49,10 @@ public class PatientVaccinationDetailActivity extends AppCompatActivity {
     private List<Vaccination> filteredVaccinations;
 
     private DatabaseHelper dbHelper;
-    private long patientId;
-    private Patient patient;
+    private ApiHelper apiHelper;
+    private SessionManager sessionManager;
+    private int patientId;
+    private String patientName;
     private String currentTab = "All";
 
     @Override
@@ -52,7 +60,9 @@ public class PatientVaccinationDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patient_vaccination_detail);
 
-        patientId = getIntent().getLongExtra("patient_id", -1);
+        patientId = getIntent().getIntExtra("patient_id", -1);
+        patientName = getIntent().getStringExtra("patient_name");
+        
         if (patientId == -1) {
             Toast.makeText(this, "Invalid patient", Toast.LENGTH_SHORT).show();
             finish();
@@ -76,12 +86,15 @@ public class PatientVaccinationDetailActivity extends AppCompatActivity {
         layoutEmpty = findViewById(R.id.layoutEmpty);
 
         dbHelper = DatabaseHelper.getInstance(this);
+        apiHelper = ApiHelper.getInstance(this);
+        sessionManager = SessionManager.getInstance(this);
+        
         allVaccinations = new ArrayList<>();
         filteredVaccinations = new ArrayList<>();
 
-        patient = dbHelper.getPatientById(patientId);
-        if (patient != null) {
-            tvPatientName.setText(patient.getName());
+        // Set patient name from intent
+        if (patientName != null && !patientName.isEmpty()) {
+            tvPatientName.setText(patientName);
         }
     }
 
@@ -119,11 +132,91 @@ public class PatientVaccinationDetailActivity extends AppCompatActivity {
 
     private void loadData() {
         showLoading(true);
-        allVaccinations.clear();
-        allVaccinations.addAll(dbHelper.getVaccinationsByPatientId(patientId));
-        filterVaccinations();
-        showLoading(false);
-        swipeRefresh.setRefreshing(false);
+        
+        // ONLINE-FIRST: Check network connectivity
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            showLoading(false);
+            swipeRefresh.setRefreshing(false);
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load vaccination data.", Toast.LENGTH_LONG).show();
+            allVaccinations.clear();
+            filterVaccinations();
+            return;
+        }
+        
+        // ONLINE: Fetch vaccinations from backend API
+        apiHelper.makeGetRequest("vaccinations.php?patient_id=" + patientId, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                runOnUiThread(() -> {
+                    try {
+                        boolean isSuccess = (response.optBoolean("success", false) || 
+                                           "success".equals(response.optString("status", "")));
+                        
+                        if (isSuccess) {
+                            JSONArray dataArray = response.optJSONArray("data");
+                            if (dataArray == null) {
+                                dataArray = response.optJSONArray("vaccinations");
+                            }
+                            
+                            allVaccinations.clear();
+                            
+                            if (dataArray != null && dataArray.length() > 0) {
+                                for (int i = 0; i < dataArray.length(); i++) {
+                                    JSONObject vaccObj = dataArray.getJSONObject(i);
+                                    Vaccination vaccination = parseVaccinationFromJson(vaccObj);
+                                    allVaccinations.add(vaccination);
+                                }
+                            }
+                            
+                            filterVaccinations();
+                        } else {
+                            String errorMsg = response.optString("message", "Failed to load vaccinations");
+                            Toast.makeText(PatientVaccinationDetailActivity.this, 
+                                "⚠️ " + errorMsg, Toast.LENGTH_LONG).show();
+                            allVaccinations.clear();
+                            filterVaccinations();
+                        }
+                        
+                    } catch (Exception e) {
+                        Toast.makeText(PatientVaccinationDetailActivity.this, 
+                            "⚠️ Error parsing data: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        allVaccinations.clear();
+                        filterVaccinations();
+                    } finally {
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(PatientVaccinationDetailActivity.this, 
+                        "⚠️ Network error: " + error, Toast.LENGTH_LONG).show();
+                    allVaccinations.clear();
+                    filterVaccinations();
+                    showLoading(false);
+                    swipeRefresh.setRefreshing(false);
+                });
+            }
+        });
+    }
+    
+    private Vaccination parseVaccinationFromJson(JSONObject obj) throws Exception {
+        Vaccination vaccination = new Vaccination();
+        
+        vaccination.setServerId(obj.optInt("id", 0));
+        vaccination.setPatientId(obj.optInt("patient_id", 0));
+        vaccination.setVaccineName(obj.optString("vaccine_name", ""));
+        vaccination.setScheduledDate(obj.optString("scheduled_date", ""));
+        vaccination.setGivenDate(obj.optString("given_date", ""));
+        vaccination.setStatus(obj.optString("status", "Pending"));
+        vaccination.setBatchNumber(obj.optString("batch_number", ""));
+        vaccination.setNotes(obj.optString("notes", ""));
+        vaccination.setPatientName(obj.optString("patient_name", ""));
+        
+        return vaccination;
     }
 
     private void filterVaccinations() {
@@ -158,6 +251,99 @@ public class PatientVaccinationDetailActivity extends AppCompatActivity {
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
     }
+    
+    private void showStatusUpdateDialog(Vaccination vaccination) {
+        // ONLINE-FIRST: Check network connectivity
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "⚠️ No internet connection. Status update requires network.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        String currentStatus = vaccination.getStatus();
+        boolean isCompleted = "COMPLETED".equals(currentStatus) || "Given".equals(currentStatus);
+        
+        String[] statusOptions;
+        if (isCompleted) {
+            statusOptions = new String[]{"Mark as Pending"};
+        } else {
+            statusOptions = new String[]{"Mark as Given"};
+        }
+        
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Update Vaccination Status")
+            .setItems(statusOptions, (dialog, which) -> {
+                String newStatus = isCompleted ? "Pending" : "Given";
+                updateVaccinationStatus(vaccination, newStatus);
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+    
+    private void updateVaccinationStatus(Vaccination vaccination, String newStatus) {
+        // Show loading
+        showLoading(true);
+        
+        String givenDate = null;
+        if ("Given".equals(newStatus)) {
+            givenDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        }
+        
+        // ONLINE-FIRST: Update vaccination status via backend API
+        String url = sessionManager.getApiBaseUrl() + "vaccinations.php";
+        JSONObject params = new JSONObject();
+        
+        try {
+            params.put("action", "update_status");
+            params.put("vaccination_id", vaccination.getServerId());
+            params.put("status", newStatus);
+            if (givenDate != null) {
+                params.put("given_date", givenDate);
+            }
+            
+            String finalGivenDate = givenDate;
+            apiHelper.makeRequest(com.android.volley.Request.Method.POST, url, params, new ApiHelper.ApiCallback() {
+                @Override
+                public void onSuccess(JSONObject response) {
+                    runOnUiThread(() -> {
+                        try {
+                            boolean isSuccess = (response.optBoolean("success", false) || 
+                                               "success".equals(response.optString("status", "")));
+                            
+                            if (isSuccess) {
+                                Toast.makeText(PatientVaccinationDetailActivity.this, 
+                                    "✓ Vaccination status updated successfully", Toast.LENGTH_SHORT).show();
+                                
+                                // Reload data from API to reflect changes
+                                loadData();
+                            } else {
+                                String errorMsg = response.optString("message", "Failed to update vaccination status");
+                                Toast.makeText(PatientVaccinationDetailActivity.this, 
+                                    "⚠️ " + errorMsg, Toast.LENGTH_LONG).show();
+                                showLoading(false);
+                            }
+                        } catch (Exception e) {
+                            Toast.makeText(PatientVaccinationDetailActivity.this, 
+                                "⚠️ Error processing response: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            showLoading(false);
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(PatientVaccinationDetailActivity.this, 
+                            "⚠️ Network error: " + error, Toast.LENGTH_LONG).show();
+                        showLoading(false);
+                    });
+                }
+            });
+            
+        } catch (Exception e) {
+            Toast.makeText(this, "⚠️ Error preparing request: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            showLoading(false);
+        }
+    }
 
     // Inner adapter class for vaccination history
     private class VaccinationHistoryAdapter extends RecyclerView.Adapter<VaccinationHistoryAdapter.ViewHolder> {
@@ -185,8 +371,8 @@ public class PatientVaccinationDetailActivity extends AppCompatActivity {
 
             holder.tvVaccineName.setText(vaccination.getVaccineName());
 
-            // Due date
-            String dueDate = vaccination.getDueDate();
+            // Due date (using scheduled_date from API)
+            String dueDate = vaccination.getScheduledDate();
             if (dueDate != null && !dueDate.isEmpty()) {
                 try {
                     Date date = inputFormat.parse(dueDate);
@@ -222,6 +408,11 @@ public class PatientVaccinationDetailActivity extends AppCompatActivity {
                 holder.tvStatus.setBackgroundResource(R.drawable.bg_badge_pending);
                 holder.tvStatus.setTextColor(ContextCompat.getColor(PatientVaccinationDetailActivity.this, android.R.color.holo_orange_dark));
             }
+            
+            // Add click listener to status badge for updates
+            holder.tvStatus.setOnClickListener(v -> {
+                showStatusUpdateDialog(vaccination);
+            });
 
             // Batch number
             String batch = vaccination.getBatchNumber();

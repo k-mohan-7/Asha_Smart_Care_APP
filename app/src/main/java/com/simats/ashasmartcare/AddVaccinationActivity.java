@@ -70,8 +70,8 @@ public class AddVaccinationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_vaccination);
 
-        patientId = getIntent().getLongExtra("patient_id", -1);
-        vaccinationId = getIntent().getLongExtra("vaccination_id", -1);
+        patientId = getIntent().getIntExtra("patient_id", -1);
+        vaccinationId = getIntent().getIntExtra("vaccination_id", -1);
 
         if (patientId == -1) {
             Toast.makeText(this, "Invalid patient", Toast.LENGTH_SHORT).show();
@@ -102,19 +102,17 @@ public class AddVaccinationActivity extends AppCompatActivity {
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = SessionManager.getInstance(this);
         apiHelper = ApiHelper.getInstance(this);
-
-        patient = dbHelper.getPatientById(patientId);
     }
 
     private void setupSpinners() {
         ArrayAdapter<String> vaccineAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, VACCINES);
-        vaccineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.spinner_item, VACCINES);
+        vaccineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerVaccine.setAdapter(vaccineAdapter);
 
         ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, STATUS);
-        statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.spinner_item, STATUS);
+        statusAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerStatus.setAdapter(statusAdapter);
     }
 
@@ -156,9 +154,12 @@ public class AddVaccinationActivity extends AppCompatActivity {
     private void loadData() {
         if (vaccinationId != -1) {
             tvTitle.setText("Edit Vaccination");
-            existingVaccination = dbHelper.getVaccinationById(vaccinationId);
-            if (existingVaccination != null) {
-                populateForm(existingVaccination);
+            // ONLINE-FIRST: Load from API instead of local DB
+            if (NetworkUtils.isNetworkAvailable(this)) {
+                loadVaccinationFromServer();
+            } else {
+                Toast.makeText(this, "No internet connection. Cannot load vaccination data.", Toast.LENGTH_SHORT).show();
+                finish();
             }
         } else {
             tvTitle.setText("Add Vaccination");
@@ -166,44 +167,91 @@ public class AddVaccinationActivity extends AppCompatActivity {
         }
     }
 
-    private void populateForm(Vaccination v) {
+    private void loadVaccinationFromServer() {
+        showLoading(true);
+        String url = Constants.API_BASE_URL + "vaccinations.php?id=" + vaccinationId;
+        
+        apiHelper.makeGetRequest(url, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    try {
+                        // Handle both response formats
+                        JSONObject vaccinationData = null;
+                        if (response.has("data")) {
+                            vaccinationData = response.getJSONObject("data");
+                        } else if (response.has("vaccination")) {
+                            vaccinationData = response.getJSONObject("vaccination");
+                        }
+                        
+                        if (vaccinationData != null) {
+                            populateFormFromJson(vaccinationData);
+                        } else {
+                            Toast.makeText(AddVaccinationActivity.this, "Failed to load vaccination", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(AddVaccinationActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    Toast.makeText(AddVaccinationActivity.this, "Error loading: " + error, Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            }
+        });
+    }
+
+    private void populateFormFromJson(JSONObject data) throws Exception {
         // Set vaccine
+        String vaccineName = data.optString("vaccine_name", "");
         for (int i = 0; i < VACCINES.length; i++) {
-            if (VACCINES[i].equals(v.getVaccineName())) {
+            if (VACCINES[i].equals(vaccineName)) {
                 spinnerVaccine.setSelection(i);
                 break;
             }
         }
-
+        
         // Set status
+        String status = data.optString("status", "Scheduled");
         for (int i = 0; i < STATUS.length; i++) {
-            if (STATUS[i].equals(v.getStatus())) {
+            if (STATUS[i].equalsIgnoreCase(status)) {
                 spinnerStatus.setSelection(i);
                 break;
             }
         }
-
-        if (v.getScheduledDate() != null && !v.getScheduledDate().isEmpty()) {
+        
+        // Set dates
+        String scheduledDate = data.optString("scheduled_date", "");
+        if (!scheduledDate.isEmpty()) {
             try {
-                scheduledCalendar.setTime(dbDateFormat.parse(v.getScheduledDate()));
+                scheduledCalendar.setTime(dbDateFormat.parse(scheduledDate));
                 etScheduledDate.setText(dateFormat.format(scheduledCalendar.getTime()));
             } catch (Exception e) {
-                etScheduledDate.setText(v.getScheduledDate());
+                etScheduledDate.setText(scheduledDate);
             }
         }
-
-        if (v.getGivenDate() != null && !v.getGivenDate().isEmpty()) {
+        
+        String givenDate = data.optString("given_date", "");
+        if (!givenDate.isEmpty() && !givenDate.equals("null")) {
             try {
-                givenCalendar.setTime(dbDateFormat.parse(v.getGivenDate()));
+                givenCalendar.setTime(dbDateFormat.parse(givenDate));
                 etGivenDate.setText(dateFormat.format(givenCalendar.getTime()));
             } catch (Exception e) {
-                etGivenDate.setText(v.getGivenDate());
+                etGivenDate.setText(givenDate);
             }
         }
-
-        etBatchNumber.setText(v.getBatchNumber());
-        etSideEffects.setText(v.getSideEffects());
-        etNotes.setText(v.getNotes());
+        
+        etBatchNumber.setText(data.optString("batch_number", ""));
+        etSideEffects.setText(data.optString("side_effects", ""));
+        etNotes.setText(data.optString("notes", ""));
     }
 
     private void saveVaccination() {
@@ -211,31 +259,13 @@ public class AddVaccinationActivity extends AppCompatActivity {
 
         showLoading(true);
 
-        Vaccination vaccination = new Vaccination();
-        if (existingVaccination != null) {
-            vaccination.setId(existingVaccination.getId());
-            vaccination.setServerId(existingVaccination.getServerId());
-        }
-
-        vaccination.setPatientId(patientId);
-        vaccination.setVaccineName(spinnerVaccine.getSelectedItem().toString());
-        vaccination.setScheduledDate(dbDateFormat.format(scheduledCalendar.getTime()));
-        
-        String status = spinnerStatus.getSelectedItem().toString();
-        vaccination.setStatus(status);
-        
-        if ("Given".equals(status) && !etGivenDate.getText().toString().isEmpty()) {
-            vaccination.setGivenDate(dbDateFormat.format(givenCalendar.getTime()));
-        }
-        
-        vaccination.setBatchNumber(etBatchNumber.getText().toString().trim());
-        vaccination.setSideEffects(etSideEffects.getText().toString().trim());
-        vaccination.setNotes(etNotes.getText().toString().trim());
-
+        // ONLINE-FIRST: Check network first
         if (NetworkUtils.isNetworkAvailable(this)) {
-            saveToServer(vaccination);
+            // Save to server ONLY
+            saveToServerOnlineFirst();
         } else {
-            saveLocally(vaccination, Constants.SYNC_PENDING);
+            // Save to local DB with sync_pending status
+            saveToLocalOffline();
         }
     }
 
@@ -256,67 +286,103 @@ public class AddVaccinationActivity extends AppCompatActivity {
         return true;
     }
 
-    private void saveToServer(Vaccination vaccination) {
+    private void saveToServerOnlineFirst() {
         try {
             JSONObject params = new JSONObject();
-            params.put("patient_id", vaccination.getPatientId());
-            params.put("vaccine_name", vaccination.getVaccineName());
-            params.put("scheduled_date", vaccination.getScheduledDate());
-            params.put("given_date", vaccination.getGivenDate() != null ? vaccination.getGivenDate() : "");
-            params.put("status", vaccination.getStatus());
-            params.put("batch_number", vaccination.getBatchNumber());
-            params.put("side_effects", vaccination.getSideEffects());
-            params.put("notes", vaccination.getNotes());
+            params.put("patient_id", patientId);
+            params.put("vaccine_name", spinnerVaccine.getSelectedItem().toString());
+            params.put("scheduled_date", dbDateFormat.format(scheduledCalendar.getTime()));
+            
+            String status = spinnerStatus.getSelectedItem().toString();
+            params.put("status", status);
+            
+            if ("Given".equals(status) && !etGivenDate.getText().toString().isEmpty()) {
+                params.put("given_date", dbDateFormat.format(givenCalendar.getTime()));
+            } else {
+                params.put("given_date", "");
+            }
+            
+            params.put("batch_number", etBatchNumber.getText().toString().trim());
+            params.put("side_effects", etSideEffects.getText().toString().trim());
+            params.put("notes", etNotes.getText().toString().trim());
             params.put("asha_id", sessionManager.getUserId());
-
+            
             String url = Constants.API_BASE_URL + "vaccinations.php";
             int method = Request.Method.POST;
-
-            if (vaccination.getServerId() > 0) {
-                params.put("id", vaccination.getServerId());
+            
+            if (vaccinationId != -1) {
+                params.put("id", vaccinationId);
                 method = Request.Method.PUT;
             }
-
+            
             apiHelper.makeRequest(method, url, params, new ApiHelper.ApiCallback() {
                 @Override
                 public void onSuccess(JSONObject response) {
-                    try {
-                        if (response.has("id")) {
-                            vaccination.setServerId((int) response.getLong("id"));
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        try {
+                            boolean success = response.optBoolean("success", false);
+                            if (!success && response.has("status")) {
+                                success = "success".equals(response.optString("status", ""));
+                            }
+                            
+                            if (success) {
+                                Toast.makeText(AddVaccinationActivity.this, 
+                                    "Vaccination saved successfully!", Toast.LENGTH_SHORT).show();
+                                finish();
+                            } else {
+                                String message = response.optString("message", "Failed to save");
+                                Toast.makeText(AddVaccinationActivity.this, message, Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (Exception e) {
+                            Toast.makeText(AddVaccinationActivity.this, 
+                                "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-                        saveLocally(vaccination, Constants.SYNC_SYNCED);
-                    } catch (Exception e) {
-                        saveLocally(vaccination, Constants.SYNC_SYNCED);
-                    }
+                    });
                 }
-
+                
                 @Override
                 public void onError(String error) {
-                    saveLocally(vaccination, Constants.SYNC_PENDING);
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        Toast.makeText(AddVaccinationActivity.this, 
+                            "Error: " + error, Toast.LENGTH_SHORT).show();
+                    });
                 }
             });
         } catch (Exception e) {
-            saveLocally(vaccination, Constants.SYNC_PENDING);
+            showLoading(false);
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void saveLocally(Vaccination vaccination, String syncStatus) {
-        vaccination.setSyncStatus(syncStatus);
-
-        long id;
-        if (vaccination.getId() > 0) {
-            dbHelper.updateVaccination(vaccination);
-            id = vaccination.getId();
-        } else {
-            id = dbHelper.insertVaccination(vaccination);
+    private void saveToLocalOffline() {
+        // Save to local database with sync_pending status for later sync
+        Vaccination vaccination = new Vaccination();
+        vaccination.setPatientId(patientId);
+        vaccination.setVaccineName(spinnerVaccine.getSelectedItem().toString());
+        vaccination.setScheduledDate(dbDateFormat.format(scheduledCalendar.getTime()));
+        
+        String status = spinnerStatus.getSelectedItem().toString();
+        vaccination.setStatus(status);
+        
+        if ("Given".equals(status) && !etGivenDate.getText().toString().isEmpty()) {
+            vaccination.setGivenDate(dbDateFormat.format(givenCalendar.getTime()));
         }
-
+        
+        vaccination.setBatchNumber(etBatchNumber.getText().toString().trim());
+        vaccination.setSideEffects(etSideEffects.getText().toString().trim());
+        vaccination.setNotes(etNotes.getText().toString().trim());
+        vaccination.setSyncStatus(Constants.SYNC_PENDING);
+        
+        long id = dbHelper.insertVaccination(vaccination);
+        
         showLoading(false);
-
+        
         if (id > 0) {
-            String message = Constants.SYNC_PENDING.equals(syncStatus) ?
-                    "Saved offline. Will sync when online." : "Vaccination saved successfully!";
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, 
+                "No internet. Saved offline. Will sync when online.", 
+                Toast.LENGTH_SHORT).show();
             finish();
         } else {
             Toast.makeText(this, "Failed to save vaccination", Toast.LENGTH_SHORT).show();

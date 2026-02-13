@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <!-- Active Alerts -->
         <TextView
@@ -18,15 +18,16 @@
             android:layout_height="wrap_content"
             android:text="Active Alerts"
             android:textColor="#1F2937"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="16dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_active_alerts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:nestedScrollingEnabled="false" />
 
         <!-- Resolved Alerts -->
         <TextView
@@ -34,27 +35,19 @@
             android:layout_height="wrap_content"
             android:text="Resolved Alerts"
             android:textColor="#1F2937"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="16dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_resolved_alerts"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
 
-        <!-- Add New Alert Button -->
-        <Button
-            android:id="@+id/btn_add_alert"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_button_login"
-            android:text="+ Add New Alert"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textAllCaps="false" />
+            android:layout_height="80dp" />
 
     </LinearLayout>
 

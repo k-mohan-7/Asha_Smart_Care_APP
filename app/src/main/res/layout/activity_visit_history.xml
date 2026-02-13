@@ -1,72 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:orientation="vertical">
+    android:background="#F8F9FA">
 
     <!-- Header -->
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="64dp"
         android:background="@color/white"
-        android:padding="16dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="Back"
+            android:padding="12dp"
             android:src="@drawable/ic_arrow_back"
-            app:tint="@color/text_primary" />
+            app:tint="#4B5563" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="History"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Visit History"
+            android:textColor="#1F2937"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/ivFilter"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_filter"
-            app:tint="@color/text_primary" />
-    </RelativeLayout>
+    </LinearLayout>
 
-    <!-- Search Bar -->
-    <androidx.cardview.widget.CardView
+    <View
+        android:id="@+id/header_divider"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="0dp"
-        app:strokeColor="#2196F3"
-        app:strokeWidth="2dp">
+        android:layout_height="1dp"
+        android:background="#F3F4F6"
+        app:layout_constraintTop_toBottomOf="@id/header" />
 
-        <EditText
-            android:id="@+id/etSearch"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:color/transparent"
-            android:hint="Search by name or ID..."
-            android:paddingHorizontal="16dp"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:textSize="14sp" />
-    </androidx.cardview.widget.CardView>
+
 
     <!-- Content Area -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintTop_toBottomOf="@id/header_divider">
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -77,14 +63,16 @@
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingBottom="16dp">
+                android:paddingHorizontal="20dp"
+                android:paddingTop="10dp">
 
                 <!-- Today Section -->
                 <LinearLayout
@@ -99,15 +87,17 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         android:text="Today"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:textColor="#6B7280"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textAllCaps="true" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recyclerToday"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false" />
+                        android:nestedScrollingEnabled="false"
+                        android:layout_marginBottom="24dp" />
                 </LinearLayout>
 
                 <!-- Yesterday Section -->
@@ -121,18 +111,19 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
                         android:layout_marginBottom="12dp"
                         android:text="Yesterday"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:textColor="#6B7280"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textAllCaps="true" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recyclerYesterday"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false" />
+                        android:nestedScrollingEnabled="false"
+                        android:layout_marginBottom="24dp" />
                 </LinearLayout>
 
                 <!-- Older Section -->
@@ -146,12 +137,12 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
                         android:layout_marginBottom="12dp"
-                        android:text="Older"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:text="Recent History"
+                        android:textColor="#6B7280"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textAllCaps="true" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recyclerOlder"
@@ -169,22 +160,22 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="32dp"
+            android:padding="48dp"
             android:visibility="gone">
 
             <ImageView
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:alpha="0.5"
+                android:alpha="0.2"
                 android:src="@drawable/ic_history"
-                app:tint="@color/text_hint" />
+                app:tint="#4B5563" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="No Visit Records"
-                android:textColor="@color/text_secondary"
+                android:layout_marginTop="24dp"
+                android:text="No Visits logged yet"
+                android:textColor="#6B7280"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -193,9 +184,23 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Visit records will appear here"
-                android:textColor="@color/text_hint"
+                android:text="When you record patient visits, they will appear here grouped by date."
+                android:textColor="#9CA3AF"
                 android:textSize="14sp" />
         </LinearLayout>
     </FrameLayout>
-</LinearLayout>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:elevation="8dp"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

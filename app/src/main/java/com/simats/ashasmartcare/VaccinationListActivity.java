@@ -18,6 +18,13 @@ import com.simats.ashasmartcare.adapters.VaccinationAdapter;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.Patient;
 import com.simats.ashasmartcare.models.Vaccination;
+import com.simats.ashasmartcare.network.ApiHelper;
+import com.simats.ashasmartcare.utils.NetworkUtils;
+import com.simats.ashasmartcare.utils.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,10 +33,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class VaccinationListActivity extends AppCompatActivity implements VaccinationAdapter.OnVaccinationClickListener {
+public class VaccinationListActivity extends AppCompatActivity
+        implements VaccinationAdapter.OnVaccinationClickListener {
 
     private ImageView ivBack;
-    private Chip chipAll, chipOverdue, chipDueSoon, chipUpcoming;
+    private Chip chipAll, chipOverdue, chipDueSoon;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
@@ -41,7 +49,10 @@ public class VaccinationListActivity extends AppCompatActivity implements Vaccin
     private String currentFilter = "All";
 
     private DatabaseHelper dbHelper;
+    private ApiHelper apiHelper;
+    private SessionManager sessionManager;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabAddVaccination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,13 +70,16 @@ public class VaccinationListActivity extends AppCompatActivity implements Vaccin
         chipAll = findViewById(R.id.chipAll);
         chipOverdue = findViewById(R.id.chipOverdue);
         chipDueSoon = findViewById(R.id.chipDueSoon);
-        chipUpcoming = findViewById(R.id.chipUpcoming);
+
         recyclerView = findViewById(R.id.recyclerView);
         swipeRefresh = findViewById(R.id.swipeRefresh);
         progressBar = findViewById(R.id.progressBar);
         layoutEmpty = findViewById(R.id.layoutEmpty);
+        fabAddVaccination = findViewById(R.id.fabAddVaccination);
 
         dbHelper = DatabaseHelper.getInstance(this);
+        apiHelper = ApiHelper.getInstance(this);
+        sessionManager = SessionManager.getInstance(this);
         vaccinationList = new ArrayList<>();
         allVaccinations = new ArrayList<>();
     }
@@ -94,31 +108,251 @@ public class VaccinationListActivity extends AppCompatActivity implements Vaccin
             filterVaccinations();
         });
 
-        chipUpcoming.setOnClickListener(v -> {
-            currentFilter = "Upcoming";
-            filterVaccinations();
+        swipeRefresh.setOnRefreshListener(this::loadData);
+
+        fabAddVaccination.setOnClickListener(v -> showPatientSelectionDialog());
+    }
+
+    private void showPatientSelectionDialog() {
+        // Check network connectivity
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load patients.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_select_patient, null);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        android.widget.EditText etSearch = dialogView.findViewById(R.id.etSearchPatient);
+        RecyclerView rvPatients = dialogView.findViewById(R.id.rvPatients);
+        ProgressBar progressBar = dialogView.findViewById(R.id.progressBarDialog);
+        android.widget.TextView tvEmpty = dialogView.findViewById(R.id.tvEmptyDialog);
+
+        List<Patient> allPatients = new ArrayList<>();
+        List<Patient> displayPatients = new ArrayList<>();
+
+        com.simats.ashasmartcare.adapters.PatientsAdapter patientAdapter = new com.simats.ashasmartcare.adapters.PatientsAdapter(
+                this, displayPatients, patient -> {
+                    Intent intent = new Intent(this, AddVaccinationActivity.class);
+                    // Use server ID instead of local ID
+                    intent.putExtra("patient_id", patient.getServerId());
+                    startActivity(intent);
+                    dialog.dismiss();
+                });
+
+        rvPatients.setLayoutManager(new LinearLayoutManager(this));
+        rvPatients.setAdapter(patientAdapter);
+
+        // ONLINE-FIRST: Load patients from backend API
+        progressBar.setVisibility(View.VISIBLE);
+        rvPatients.setVisibility(View.GONE);
+        tvEmpty.setVisibility(View.GONE);
+
+        String ashaId = String.valueOf(sessionManager.getUserId());
+        apiHelper.getPatients(ashaId, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    boolean isSuccess = (response.optBoolean("success", false) ||
+                            "success".equals(response.optString("status", "")));
+
+                    if (isSuccess) {
+                        JSONArray patientsArray = response.getJSONArray("patients");
+                        allPatients.clear();
+                        displayPatients.clear();
+
+                        for (int i = 0; i < patientsArray.length(); i++) {
+                            JSONObject patientObj = patientsArray.getJSONObject(i);
+                            Patient patient = parsePatientFromJson(patientObj);
+                            allPatients.add(patient);
+                            displayPatients.add(patient);
+                        }
+
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            if (displayPatients.isEmpty()) {
+                                tvEmpty.setVisibility(View.VISIBLE);
+                                rvPatients.setVisibility(View.GONE);
+                            } else {
+                                tvEmpty.setVisibility(View.GONE);
+                                rvPatients.setVisibility(View.VISIBLE);
+                                patientAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            tvEmpty.setVisibility(View.VISIBLE);
+                            tvEmpty.setText("Failed to load patients");
+                        });
+                    }
+                } catch (Exception e) {
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        tvEmpty.setVisibility(View.VISIBLE);
+                        tvEmpty.setText("Error: " + e.getMessage());
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    tvEmpty.setVisibility(View.VISIBLE);
+                    tvEmpty.setText("Network error: " + error);
+                });
+            }
         });
 
-        swipeRefresh.setOnRefreshListener(this::loadData);
+        etSearch.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s.toString().toLowerCase();
+                displayPatients.clear();
+                for (Patient p : allPatients) {
+                    if (p.getName().toLowerCase().contains(query)) {
+                        displayPatients.add(p);
+                    }
+                }
+                patientAdapter.notifyDataSetChanged();
+
+                if (displayPatients.isEmpty() && !allPatients.isEmpty()) {
+                    tvEmpty.setVisibility(View.VISIBLE);
+                    tvEmpty.setText("No patients found");
+                    rvPatients.setVisibility(View.GONE);
+                } else if (!displayPatients.isEmpty()) {
+                    tvEmpty.setVisibility(View.GONE);
+                    rvPatients.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+            }
+        });
+
+        dialog.show();
+    }
+
+    private Patient parsePatientFromJson(JSONObject obj) throws JSONException {
+        Patient patient = new Patient();
+        patient.setServerId(obj.optInt("id", 0));
+        patient.setName(obj.optString("name", ""));
+        patient.setAge(obj.optInt("age", 0));
+        patient.setGender(obj.optString("gender", ""));
+        patient.setPhone(obj.optString("phone", ""));
+        patient.setAddress(obj.optString("address", ""));
+        patient.setCategory(obj.optString("category", ""));
+        patient.setBloodGroup(obj.optString("blood_group", ""));
+        patient.setMedicalHistory(obj.optString("medical_history", ""));
+        patient.setAshaId(obj.optString("asha_id", ""));
+        patient.setRegistrationDate(obj.optString("registration_date", ""));
+        patient.setSyncStatus("SYNCED");
+        return patient;
     }
 
     private void loadData() {
         showLoading(true);
+
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            // ONLINE: Fetch from backend API
+            fetchVaccinationsFromBackend();
+        } else {
+            // OFFLINE: Show no internet message
+            showLoading(false);
+            swipeRefresh.setRefreshing(false);
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load vaccinations.", Toast.LENGTH_LONG).show();
+            allVaccinations.clear();
+            updateUI();
+        }
+    }
+
+    private void fetchVaccinationsFromBackend() {
+        String ashaId = String.valueOf(sessionManager.getUserId());
+
+        apiHelper.makeGetRequest("vaccinations.php?asha_id=" + ashaId, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    if (response.getBoolean("success")) {
+                        JSONArray vaccsArray = response.getJSONArray("data");
+                        allVaccinations.clear();
+
+                        for (int i = 0; i < vaccsArray.length(); i++) {
+                            JSONObject vaccObj = vaccsArray.getJSONObject(i);
+                            Vaccination vacc = new Vaccination();
+                            vacc.setServerId(vaccObj.getInt("id"));
+                            vacc.setPatientId(vaccObj.getInt("patient_id"));
+                            vacc.setVaccineName(vaccObj.getString("vaccine_name"));
+                            vacc.setDueDate(vaccObj.getString("scheduled_date")); // Backend returns 'scheduled_date'
+                            vacc.setGivenDate(vaccObj.optString("given_date", ""));
+                            vacc.setStatus(vaccObj.getString("status"));
+                            vacc.setBatchNumber(vaccObj.optString("batch_number", ""));
+                            vacc.setNotes(vaccObj.optString("notes", ""));
+                            vacc.setPatientName(vaccObj.optString("patient_name", ""));
+                            allVaccinations.add(vacc);
+                        }
+
+                        runOnUiThread(() -> {
+                            filterVaccinations(); // Filter data into vaccinationList based on current filter
+                            showLoading(false);
+                            swipeRefresh.setRefreshing(false);
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            swipeRefresh.setRefreshing(false);
+                            Toast.makeText(VaccinationListActivity.this, "Failed to load vaccinations",
+                                    Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
+                        Toast.makeText(VaccinationListActivity.this, "Error parsing data", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    swipeRefresh.setRefreshing(false);
+                    Toast.makeText(VaccinationListActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void loadDataOLD_REMOVE() {
+        showLoading(true);
+
+        // Sync any missing vaccinations from notes first
+        dbHelper.syncMissingVaccinations();
+
         allVaccinations.clear();
-        
-        // Load all vaccinations for all patients (exclude completed ones)
+
+        // Load all vaccinations for all patients
         List<Vaccination> allVaccs = dbHelper.getAllVaccinations();
         for (Vaccination vacc : allVaccs) {
-            if (!"COMPLETED".equals(vacc.getStatus()) && !"Given".equals(vacc.getStatus())) {
-                // Get patient name for each vaccination
-                Patient patient = dbHelper.getPatientById(vacc.getPatientId());
-                if (patient != null) {
-                    vacc.setPatientName(patient.getName());
-                }
-                allVaccinations.add(vacc);
+            // Get patient name for each vaccination
+            Patient patient = dbHelper.getPatientById(vacc.getPatientId());
+            if (patient != null) {
+                vacc.setPatientName(patient.getName());
             }
+            allVaccinations.add(vacc);
         }
-        
+
         filterVaccinations();
         showLoading(false);
         swipeRefresh.setRefreshing(false);
@@ -126,21 +360,19 @@ public class VaccinationListActivity extends AppCompatActivity implements Vaccin
 
     private void filterVaccinations() {
         vaccinationList.clear();
-        
+
         for (Vaccination vacc : allVaccinations) {
             String status = calculateVaccinationStatus(vacc.getDueDate());
-            
+
             if (currentFilter.equals("All")) {
                 vaccinationList.add(vacc);
             } else if (currentFilter.equals("Overdue") && status.equals("overdue")) {
                 vaccinationList.add(vacc);
             } else if (currentFilter.equals("Due Soon") && status.equals("due soon")) {
                 vaccinationList.add(vacc);
-            } else if (currentFilter.equals("Upcoming") && status.equals("upcoming")) {
-                vaccinationList.add(vacc);
             }
         }
-        
+
         updateUI();
     }
 
@@ -148,14 +380,14 @@ public class VaccinationListActivity extends AppCompatActivity implements Vaccin
         if (dueDate == null || dueDate.isEmpty()) {
             return "upcoming";
         }
-        
+
         try {
             Date due = dateFormat.parse(dueDate);
             Date today = new Date();
-            
+
             long diff = due.getTime() - today.getTime();
             long daysDiff = diff / (1000 * 60 * 60 * 24);
-            
+
             if (daysDiff < 0) {
                 return "overdue";
             } else if (daysDiff <= 7) {
@@ -188,26 +420,79 @@ public class VaccinationListActivity extends AppCompatActivity implements Vaccin
     public void onVaccinationClick(Vaccination vaccination) {
         // Open patient vaccination detail screen
         Intent intent = new Intent(this, PatientVaccinationDetailActivity.class);
-        intent.putExtra("patient_id", vaccination.getPatientId());
+        intent.putExtra("patient_id", (int) vaccination.getPatientId()); // Cast to int
+        intent.putExtra("patient_name", vaccination.getPatientName());
         startActivity(intent);
     }
 
     @Override
     public void onMarkDoneClick(Vaccination vaccination) {
-        // Mark vaccination as completed
-        vaccination.setStatus("COMPLETED");
-        vaccination.setGivenDate(dateFormat.format(new Date()));
-        
-        // Update in database
-        dbHelper.updateVaccination(vaccination);
-        
-        // Add to sync queue
-        dbHelper.addToSyncQueue("vaccinations", vaccination.getLocalId(), "UPDATE");
-        
-        Toast.makeText(this, "Vaccination marked as done", Toast.LENGTH_SHORT).show();
-        
-        // Reload data
-        loadData();
+        // ONLINE-FIRST: Check network connectivity
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "⚠️ No internet connection. Status update requires network.", Toast.LENGTH_LONG)
+                    .show();
+            return;
+        }
+
+        // Show loading
+        showLoading(true);
+
+        // Prepare updated status and given date
+        String newStatus = "Given";
+        String givenDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+        // ONLINE-FIRST: Update vaccination status via backend API
+        String url = sessionManager.getApiBaseUrl() + "vaccinations.php";
+        JSONObject params = new JSONObject();
+
+        try {
+            params.put("action", "update_status");
+            params.put("vaccination_id", vaccination.getServerId());
+            params.put("status", newStatus);
+            params.put("given_date", givenDate);
+
+            apiHelper.makeRequest(com.android.volley.Request.Method.POST, url, params, new ApiHelper.ApiCallback() {
+                @Override
+                public void onSuccess(JSONObject response) {
+                    runOnUiThread(() -> {
+                        try {
+                            boolean isSuccess = (response.optBoolean("success", false) ||
+                                    "success".equals(response.optString("status", "")));
+
+                            if (isSuccess) {
+                                Toast.makeText(VaccinationListActivity.this,
+                                        "✓ Vaccination marked as given", Toast.LENGTH_SHORT).show();
+
+                                // Reload data from API to reflect changes
+                                loadData();
+                            } else {
+                                String errorMsg = response.optString("message", "Failed to update vaccination status");
+                                Toast.makeText(VaccinationListActivity.this,
+                                        "⚠️ " + errorMsg, Toast.LENGTH_LONG).show();
+                                showLoading(false);
+                            }
+                        } catch (Exception e) {
+                            Toast.makeText(VaccinationListActivity.this,
+                                    "⚠️ Error processing response: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            showLoading(false);
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(VaccinationListActivity.this,
+                                "⚠️ Network error: " + error, Toast.LENGTH_LONG).show();
+                        showLoading(false);
+                    });
+                }
+            });
+
+        } catch (JSONException e) {
+            Toast.makeText(this, "⚠️ Error preparing request: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            showLoading(false);
+        }
     }
 
     @Override

@@ -114,11 +114,15 @@ public class PatientListActivity extends AppCompatActivity implements PatientAda
         showLoading(true);
 
         if (NetworkUtils.isNetworkAvailable(this)) {
-            // Try to fetch from server first
+            // ONLINE: Fetch from backend API only
             fetchPatientsFromServer();
         } else {
-            // Load from local database
-            loadPatientsFromLocal();
+            // OFFLINE: Show no internet message
+            showLoading(false);
+            swipeRefresh.setRefreshing(false);
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load patients.", Toast.LENGTH_LONG).show();
+            patientList.clear();
+            updateUI();
         }
     }
 
@@ -129,7 +133,11 @@ public class PatientListActivity extends AppCompatActivity implements PatientAda
             @Override
             public void onSuccess(JSONObject response) {
                 try {
-                    if (response.getBoolean("success")) {
+                    // Backend returns either "success":true or "status":"success"
+                    boolean isSuccess = (response.optBoolean("success", false) || 
+                                       "success".equals(response.optString("status", "")));
+                    
+                    if (isSuccess) {
                         JSONArray patientsArray = response.getJSONArray("patients");
                         patientList.clear();
                         
@@ -137,18 +145,25 @@ public class PatientListActivity extends AppCompatActivity implements PatientAda
                             JSONObject patientObj = patientsArray.getJSONObject(i);
                             Patient patient = parsePatientFromJson(patientObj);
                             patientList.add(patient);
-                            
-                            // Update local database
-                            dbHelper.insertOrUpdatePatient(patient);
+                            // ONLINE MODE: NO local database storage
                         }
                         
                         updateUI();
                     } else {
-                        loadPatientsFromLocal();
+                        // Backend error
+                        runOnUiThread(() -> {
+                            Toast.makeText(PatientListActivity.this, "Failed to load patients", Toast.LENGTH_SHORT).show();
+                            patientList.clear();
+                            updateUI();
+                        });
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    loadPatientsFromLocal();
+                    runOnUiThread(() -> {
+                        Toast.makeText(PatientListActivity.this, "Error parsing data", Toast.LENGTH_SHORT).show();
+                        patientList.clear();
+                        updateUI();
+                    });
                 }
                 showLoading(false);
                 swipeRefresh.setRefreshing(false);
@@ -156,17 +171,15 @@ public class PatientListActivity extends AppCompatActivity implements PatientAda
 
             @Override
             public void onError(String error) {
-                loadPatientsFromLocal();
+                showLoading(false);
                 swipeRefresh.setRefreshing(false);
+                runOnUiThread(() -> {
+                    Toast.makeText(PatientListActivity.this, "Network error: " + error, Toast.LENGTH_LONG).show();
+                    patientList.clear();
+                    updateUI();
+                });
             }
         });
-    }
-
-    private void loadPatientsFromLocal() {
-        patientList.clear();
-        patientList.addAll(dbHelper.getAllPatients());
-        updateUI();
-        showLoading(false);
     }
 
     private void updateUI() {
@@ -195,7 +208,7 @@ public class PatientListActivity extends AppCompatActivity implements PatientAda
             for (Patient patient : patientList) {
                 if (patient.getName().toLowerCase().contains(lowerQuery) ||
                     patient.getPhone().contains(query) ||
-                    patient.getVillage().toLowerCase().contains(lowerQuery)) {
+                    (patient.getAddress() != null && patient.getAddress().toLowerCase().contains(lowerQuery))) {
                     filteredList.add(patient);
                 }
             }
@@ -230,12 +243,8 @@ public class PatientListActivity extends AppCompatActivity implements PatientAda
         patient.setGender(obj.optString("gender", ""));
         patient.setPhone(obj.optString("phone", ""));
         patient.setAddress(obj.optString("address", ""));
-        patient.setVillage(obj.optString("village", ""));
-        patient.setDistrict(obj.optString("district", ""));
-        patient.setState(obj.optString("state", ""));
         patient.setCategory(obj.optString("category", ""));
         patient.setBloodGroup(obj.optString("blood_group", ""));
-        patient.setEmergencyContact(obj.optString("emergency_contact", ""));
         patient.setMedicalHistory(obj.optString("medical_history", ""));
         patient.setAshaId(obj.optString("asha_id", ""));
         patient.setRegistrationDate(obj.optString("registration_date", ""));
@@ -246,7 +255,7 @@ public class PatientListActivity extends AppCompatActivity implements PatientAda
     @Override
     public void onPatientClick(Patient patient) {
         Intent intent = new Intent(this, PatientProfileActivity.class);
-        intent.putExtra("patient_id", patient.getId());
+        intent.putExtra("patient_id", patient.getServerId());
         startActivity(intent);
     }
 

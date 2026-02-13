@@ -40,19 +40,21 @@ public class HighRiskAlertAdapter extends RecyclerView.Adapter<HighRiskAlertAdap
         holder.tvPatientName.setText(alert.getPatientName());
         holder.tvVillage.setText(alert.getVillage());
 
-        // Set alert badge color based on type
-        if ("High BP".equalsIgnoreCase(alert.getAlertType())) {
-            holder.tvAlertBadge.setText("High BP");
+        String type = alert.getAlertType();
+        holder.tvAlertBadge.setText(type);
+
+        if (type.contains("Vaccine") || type.contains("Overdue")) {
             holder.tvAlertBadge.setTextColor(context.getResources().getColor(R.color.error));
             holder.tvAlertBadge.setBackgroundResource(R.drawable.bg_red_light);
-        } else if ("Malnutrition".equalsIgnoreCase(alert.getAlertType())) {
-            holder.tvAlertBadge.setText("Malnutrition");
-            holder.tvAlertBadge.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
+        } else if (type.contains("Weight") || type.contains("Malnutrition")) {
+            holder.tvAlertBadge.setTextColor(context.getResources().getColor(R.color.status_pending_text));
             holder.tvAlertBadge.setBackgroundResource(R.drawable.bg_badge_pending);
+        } else if (type.contains("BP") || type.contains("Pregnancy")) {
+            holder.tvAlertBadge.setTextColor(context.getResources().getColor(R.color.category_pregnant));
+            holder.tvAlertBadge.setBackgroundResource(R.drawable.bg_badge_pregnant);
         } else {
-            holder.tvAlertBadge.setText(alert.getAlertType());
-            holder.tvAlertBadge.setTextColor(context.getResources().getColor(R.color.error));
-            holder.tvAlertBadge.setBackgroundResource(R.drawable.bg_red_light);
+            holder.tvAlertBadge.setTextColor(context.getResources().getColor(R.color.primary_dark));
+            holder.tvAlertBadge.setBackgroundResource(R.drawable.bg_blue_light);
         }
 
         // Show/hide reviewed state
@@ -74,8 +76,15 @@ public class HighRiskAlertAdapter extends RecyclerView.Adapter<HighRiskAlertAdap
 
         // Handle mark reviewed button
         holder.btnMarkReviewed.setOnClickListener(v -> {
+            com.simats.ashasmartcare.database.DatabaseHelper.getInstance(context)
+                    .markAlertReviewed(alert.getPatientId(), alert.getAlertType(), true);
+
+            // Update local model and refresh view instead of removing
             alert.setReviewed(true);
-            notifyItemChanged(position);
+            int currentPosition = holder.getAdapterPosition();
+            if (currentPosition != RecyclerView.NO_POSITION) {
+                notifyItemChanged(currentPosition);
+            }
         });
     }
 

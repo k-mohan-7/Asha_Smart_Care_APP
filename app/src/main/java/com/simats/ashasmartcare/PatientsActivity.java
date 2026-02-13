@@ -9,7 +9,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.simats.ashasmartcare.activities.SyncStatusActivity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,7 +24,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.simats.ashasmartcare.adapters.PatientsAdapter;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.Patient;
+import com.simats.ashasmartcare.network.ApiHelper;
+import com.simats.ashasmartcare.services.NetworkMonitorService;
 import com.simats.ashasmartcare.utils.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +48,7 @@ public class PatientsActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
+    private ApiHelper apiHelper;
     private PatientsAdapter adapter;
     private List<Patient> allPatients;
     private List<Patient> filteredPatients;
@@ -50,14 +60,33 @@ public class PatientsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_patients);
 
         initViews();
+
+        // Handle filter intent extra
+        String filterExtra = getIntent().getStringExtra("filter");
+        if (filterExtra != null && !filterExtra.isEmpty()) {
+            currentFilter = filterExtra;
+            // Determine which chip to check based on filter
+            if ("pregnant".equals(currentFilter))
+                chipPregnant.setChecked(true);
+            else if ("children".equals(currentFilter))
+                chipChildren.setChecked(true);
+            else if ("high_risk".equals(currentFilter))
+                chipHighRisk.setChecked(true);
+            else
+                chipAll.setChecked(true);
+        }
+
         setupRecyclerView();
         setupListeners();
         loadPatients();
     }
 
+    private com.google.android.material.chip.ChipGroup chipGroupFilters;
+
     private void initViews() {
         ivBack = findViewById(R.id.iv_back);
         etSearch = findViewById(R.id.et_search);
+        chipGroupFilters = findViewById(R.id.chip_group_filters);
         chipAll = findViewById(R.id.chip_all);
         chipPregnant = findViewById(R.id.chip_pregnant);
         chipChildren = findViewById(R.id.chip_children);
@@ -70,15 +99,16 @@ public class PatientsActivity extends AppCompatActivity {
 
         dbHelper = DatabaseHelper.getInstance(this);
         sessionManager = SessionManager.getInstance(this);
+        apiHelper = ApiHelper.getInstance(this);
         allPatients = new ArrayList<>();
         filteredPatients = new ArrayList<>();
     }
 
     private void setupRecyclerView() {
         adapter = new PatientsAdapter(this, filteredPatients, patient -> {
-            // Open patient profile
-            Intent intent = new Intent(PatientsActivity.this, PatientDetailActivity.class);
-            intent.putExtra("patient_id", patient.getLocalId());
+            // Open patient profile (unified view)
+            Intent intent = new Intent(PatientsActivity.this, PatientProfileActivity.class);
+            intent.putExtra("patient_id", patient.getServerId());
             startActivity(intent);
         });
         rvPatients.setLayoutManager(new LinearLayoutManager(this));
@@ -97,31 +127,25 @@ public class PatientsActivity extends AppCompatActivity {
             swipeRefresh.setRefreshing(false);
         });
 
-        // Filter chips
-        chipAll.setOnClickListener(v -> {
-            currentFilter = "all";
-            filterPatients();
-        });
-
-        chipPregnant.setOnClickListener(v -> {
-            currentFilter = "pregnant";
-            filterPatients();
-        });
-
-        chipChildren.setOnClickListener(v -> {
-            currentFilter = "children";
-            filterPatients();
-        });
-
-        chipHighRisk.setOnClickListener(v -> {
-            currentFilter = "high_risk";
+        // Filter chips using ChipGroup listener
+        chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.chip_all) {
+                currentFilter = "all";
+            } else if (checkedId == R.id.chip_pregnant) {
+                currentFilter = "pregnant";
+            } else if (checkedId == R.id.chip_children) {
+                currentFilter = "children";
+            } else if (checkedId == R.id.chip_high_risk) {
+                currentFilter = "high_risk";
+            }
             filterPatients();
         });
 
         // Search
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -129,7 +153,8 @@ public class PatientsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -137,15 +162,105 @@ public class PatientsActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         layoutEmpty.setVisibility(View.GONE);
 
-        // Load from database
-        new Thread(() -> {
-            allPatients = dbHelper.getAllPatients();
+        // Check internet connection
+        if (NetworkMonitorService.isNetworkConnected(this)) {
+            // ONLINE: Fetch from backend API only (NO local DB)
+            fetchPatientsFromBackend();
+        } else {
+            // OFFLINE: Show no internet message
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load patients.", Toast.LENGTH_LONG).show();
+            allPatients.clear();
+            filteredPatients.clear();
+            adapter.notifyDataSetChanged();
+            layoutEmpty.setVisibility(View.VISIBLE);
+        }
+    }
 
-            runOnUiThread(() -> {
-                progressBar.setVisibility(View.GONE);
-                filterPatients();
-            });
-        }).start();
+    private void fetchPatientsFromBackend() {
+        String ashaId = String.valueOf(sessionManager.getUserId());
+        String apiBaseUrl = sessionManager.getApiBaseUrl();
+
+        // Use GET request instead of POST (POST is broken on backend)
+        String endpoint = "patients.php?asha_id=" + ashaId;
+
+        apiHelper.makeGetRequest(endpoint, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    // Backend returns either "success":true or "status":"success"
+                    boolean isSuccess = (response.optBoolean("success", false) ||
+                            "success".equals(response.optString("status", "")));
+
+                    if (isSuccess) {
+                        // Backend returns either "data" or "patients" array
+                        JSONArray patientsArray = response.has("patients") ? response.getJSONArray("patients")
+                                : response.getJSONArray("data");
+                        allPatients.clear();
+
+                        for (int i = 0; i < patientsArray.length(); i++) {
+                            JSONObject patientObj = patientsArray.getJSONObject(i);
+                            Patient patient = new Patient();
+                            patient.setServerId(patientObj.getInt("id"));
+                            patient.setName(patientObj.getString("name"));
+                            patient.setAge(patientObj.getInt("age"));
+                            patient.setGender(patientObj.getString("gender"));
+                            patient.setCategory(patientObj.optString("category", "General"));
+                            patient.setAddress(patientObj.optString("address", ""));
+                            patient.setPhone(patientObj.optString("phone", ""));
+                            patient.setHighRisk(patientObj.optInt("is_high_risk", 0) == 1);
+                            patient.setHighRiskReason(patientObj.optString("high_risk_reason", ""));
+                            patient.setSyncStatus("SYNCED"); // Loaded from API
+                            allPatients.add(patient);
+                            // ONLINE MODE: NO local database storage
+                        }
+
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            filterPatients();
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(PatientsActivity.this, "Failed to load patients", Toast.LENGTH_SHORT).show();
+                            allPatients.clear();
+                            filterPatients();
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(PatientsActivity.this, "Error parsing data", Toast.LENGTH_SHORT).show();
+                        allPatients.clear();
+                        filterPatients();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+
+                    // Show detailed error message with retry option
+                    String detailedMessage = error;
+                    if (error.contains("timeout") || error.contains("not responding")) {
+                        detailedMessage += "\\n\\nPossible causes:\\n• Backend server not running\\n• Wrong IP address (current: "
+                                +
+                                sessionManager.getApiBaseUrl() + ")\\n• Network delay or firewall blocking";
+                    } else if (error.contains("Unable to reach server")) {
+                        detailedMessage += "\\n\\nMake sure your backend PHP server is running at:\\n" +
+                                sessionManager.getApiBaseUrl();
+                    }
+
+                    Toast.makeText(PatientsActivity.this, detailedMessage, Toast.LENGTH_LONG).show();
+                    allPatients.clear();
+                    filterPatients();
+                    layoutEmpty.setVisibility(View.VISIBLE);
+                });
+            }
+        });
     }
 
     private void filterPatients() {
@@ -161,11 +276,11 @@ public class PatientsActivity extends AppCompatActivity {
                     break;
                 case "pregnant":
                     matchesCategory = "Pregnant Woman".equalsIgnoreCase(patient.getCategory()) ||
-                                     "Pregnant".equalsIgnoreCase(patient.getCategory());
+                            "Pregnant".equalsIgnoreCase(patient.getCategory());
                     break;
                 case "children":
                     matchesCategory = "Child (0-5 years)".equalsIgnoreCase(patient.getCategory()) ||
-                                     "Child".equalsIgnoreCase(patient.getCategory());
+                            "Child".equalsIgnoreCase(patient.getCategory());
                     break;
                 case "high_risk":
                     // Check if patient has high risk indicators
@@ -191,7 +306,7 @@ public class PatientsActivity extends AppCompatActivity {
     private boolean isHighRisk(Patient patient) {
         // Check if patient is pregnant category (basic high risk indicator)
         if ("Pregnant Woman".equalsIgnoreCase(patient.getCategory()) ||
-            "Pregnant".equalsIgnoreCase(patient.getCategory())) {
+                "Pregnant".equalsIgnoreCase(patient.getCategory())) {
             return true;
         }
         // Additional high risk checks can be added here

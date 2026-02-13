@@ -18,6 +18,7 @@ import com.android.volley.Request;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.Patient;
 import com.simats.ashasmartcare.models.Visit;
+import com.simats.ashasmartcare.services.NetworkMonitorService;
 import com.simats.ashasmartcare.network.ApiHelper;
 import com.simats.ashasmartcare.utils.Constants;
 import com.simats.ashasmartcare.utils.NetworkUtils;
@@ -103,8 +104,8 @@ public class AddVisitActivity extends AppCompatActivity {
 
     private void setupSpinners() {
         ArrayAdapter<String> visitTypeAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, VISIT_TYPES);
-        visitTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.spinner_item, VISIT_TYPES);
+        visitTypeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerVisitType.setAdapter(visitTypeAdapter);
     }
 
@@ -212,9 +213,13 @@ public class AddVisitActivity extends AppCompatActivity {
         visit.setNextVisitDate(dbDateFormat.format(nextVisitCalendar.getTime()));
         visit.setNotes(etNotes.getText().toString().trim());
 
-        if (NetworkUtils.isNetworkAvailable(this)) {
-            saveToServer(visit);
+        if (NetworkMonitorService.isNetworkConnected(this)) {
+            // ONLINE: Direct backend POST only (NO local database)
+            visit.setSyncStatus(Constants.SYNC_SYNCED);
+            saveToBackendOnly(visit);
         } else {
+            // OFFLINE: Save to local database + sync queue
+            visit.setSyncStatus(Constants.SYNC_PENDING);
             saveLocally(visit, Constants.SYNC_PENDING);
         }
     }
@@ -233,6 +238,52 @@ public class AddVisitActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    private void saveToBackendOnly(Visit visit) {
+        showLoading(true);
+        try {
+            JSONObject params = new JSONObject();
+            params.put("patient_id", visit.getPatientId());
+            params.put("visit_type", visit.getVisitType());
+            params.put("visit_date", visit.getVisitDate());
+            params.put("purpose", visit.getPurpose());
+            params.put("findings", visit.getFindings());
+            params.put("recommendations", visit.getRecommendations());
+            params.put("next_visit_date", visit.getNextVisitDate());
+            params.put("notes", visit.getNotes());
+            params.put("asha_id", sessionManager.getUserId());
+
+            String url = Constants.API_BASE_URL + "visits.php";
+            int method = Request.Method.POST;
+
+            if (visit.getServerId() > 0) {
+                params.put("id", visit.getServerId());
+                method = Request.Method.PUT;
+            }
+
+            apiHelper.makeRequest(method, url, params, new ApiHelper.ApiCallback() {
+                @Override
+                public void onSuccess(JSONObject response) {
+                    showLoading(false);
+                    runOnUiThread(() -> {
+                        Toast.makeText(AddVisitActivity.this, "✓ Visit saved successfully!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    showLoading(false);
+                    runOnUiThread(() -> {
+                        Toast.makeText(AddVisitActivity.this, "Network error: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        } catch (Exception e) {
+            showLoading(false);
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveToServer(Visit visit) {

@@ -59,13 +59,13 @@ public class AdminPatientAdapter extends RecyclerView.Adapter<AdminPatientAdapte
         // Set patient details based on category
         String details = "";
         if ("Pregnant".equalsIgnoreCase(patient.getCategory())) {
-            details = "Pregnant (7th Mo) • " + patient.getVillage();
+            details = "Pregnant (7th Mo) • " + patient.getAddress();
         } else if ("Child".equalsIgnoreCase(patient.getCategory())) {
-            details = "Child (" + patient.getAge() + " yrs) • " + patient.getVillage();
+            details = "Child (" + patient.getAge() + " yrs) • " + patient.getAddress();
         } else if ("Infant".equalsIgnoreCase(patient.getCategory())) {
-            details = "Infant (2 weeks) • " + patient.getVillage();
+            details = "Infant (2 weeks) • " + patient.getAddress();
         } else {
-            details = patient.getCategory() + " • " + patient.getVillage();
+            details = patient.getCategory() + " • " + patient.getAddress();
         }
         holder.tvPatientDetails.setText(details);
 

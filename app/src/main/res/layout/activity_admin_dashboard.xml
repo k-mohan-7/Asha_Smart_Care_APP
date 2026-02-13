@@ -26,11 +26,15 @@
             android:textStyle="bold" />
 
         <ImageView
+            android:id="@+id/ivProfile"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_person"
             android:background="@drawable/circle_white_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
             app:tint="#111827"/>
     </LinearLayout>
 
@@ -62,7 +66,7 @@
                     android:orientation="vertical"
                     android:paddingVertical="48dp"
                     android:paddingHorizontal="32dp"
-                    android:background="@android:color/white">
+                    android:background="#FFFFFF">
 
                     <ImageView
                         android:layout_width="64dp"
@@ -88,7 +92,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:columnCount="2"
-                android:rowCount="2"
+                android:rowCount="3"
                 android:alignmentMode="alignMargins"
                 android:columnOrderPreserved="false"
                 android:useDefaultMargins="true">
@@ -108,7 +112,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="#FFFFFF">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -119,12 +124,22 @@
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvWorkersCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#111827"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="ASHA Workers"
-                            android:textColor="#374151"
-                            android:textSize="14sp"
+                            android:textColor="#6B7280"
+                            android:textSize="12sp"
                             android:textStyle="normal" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -144,7 +159,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="#FFFFFF">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -155,12 +171,22 @@
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvPatientsCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#111827"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="Patients"
-                            android:textColor="#374151"
-                            android:textSize="14sp"
+                            android:textColor="#6B7280"
+                            android:textSize="12sp"
                             android:textStyle="normal" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -180,7 +206,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="#FFFFFF">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -191,19 +218,29 @@
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvHighRiskCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#EF4444"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="High-Risk Cases"
-                            android:textColor="#374151"
-                            android:textSize="14sp"
+                            android:textColor="#6B7280"
+                            android:textSize="12sp"
                             android:textStyle="normal" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- Pending Sync Card -->
+                <!-- Pending Approval Card -->
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardPendingSync"
+                    android:id="@+id/cardPendingApproval"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
@@ -216,23 +253,34 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:background="#FFFFFF">
 
                         <ImageView
                             android:layout_width="48dp"
                             android:layout_height="48dp"
-                            android:src="@drawable/ic_sync"
+                            android:src="@drawable/ic_check_circle"
                              android:padding="10dp"
                             android:background="@drawable/bg_circle_light_blue_large"
                             app:tint="#3B82F6" />
 
                         <TextView
+                            android:id="@+id/tvPendingApprovalCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:text="Pending Sync"
-                            android:textColor="#374151"
-                            android:textSize="14sp"
+                            android:layout_marginTop="8dp"
+                            android:text="0"
+                            android:textColor="#F59E0B"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Pending Approval"
+                            android:textColor="#6B7280"
+                            android:textSize="12sp"
                             android:textStyle="normal" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>

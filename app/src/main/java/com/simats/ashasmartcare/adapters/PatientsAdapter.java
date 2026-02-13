@@ -49,54 +49,64 @@ public class PatientsAdapter extends RecyclerView.Adapter<PatientsAdapter.ViewHo
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPatientName, tvPatientInfo, tvCategoryBadge, tvRiskBadge, tvPendingBadge;
+        TextView tvPatientName, tvPatientInfo;
+        View layoutPendingBadge, layoutSyncedBadge;
+        TextView tvCategoryPregnant, tvCategoryChild, tvCategoryHighRisk, tvCategoryGeneral;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPatientName = itemView.findViewById(R.id.tv_patient_name);
             tvPatientInfo = itemView.findViewById(R.id.tv_patient_info);
-            tvCategoryBadge = itemView.findViewById(R.id.tv_category_badge);
-            tvRiskBadge = itemView.findViewById(R.id.tv_risk_badge);
-            tvPendingBadge = itemView.findViewById(R.id.tv_pending_badge);
+            layoutPendingBadge = itemView.findViewById(R.id.layout_pending_badge);
+            layoutSyncedBadge = itemView.findViewById(R.id.layout_synced_badge);
+            tvCategoryPregnant = itemView.findViewById(R.id.tv_category_pregnant);
+            tvCategoryChild = itemView.findViewById(R.id.tv_category_child);
+            tvCategoryHighRisk = itemView.findViewById(R.id.tv_category_high_risk);
+            tvCategoryGeneral = itemView.findViewById(R.id.tv_category_general);
         }
 
         void bind(Patient patient) {
             tvPatientName.setText(patient.getName());
 
-            // Age and village
+            // Age and address
             String info = patient.getAge() + " years";
-            if (patient.getArea() != null && !patient.getArea().isEmpty()) {
-                info += " • " + patient.getArea();
+            if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
+                info += " • " + patient.getAddress();
             }
             tvPatientInfo.setText(info);
 
-            // Category badge
+            // Hide all category chips initially
+            tvCategoryPregnant.setVisibility(View.GONE);
+            tvCategoryChild.setVisibility(View.GONE);
+            tvCategoryHighRisk.setVisibility(View.GONE);
+            tvCategoryGeneral.setVisibility(View.GONE);
+
+            // Category logic matching screenshot
             String category = patient.getCategory();
             if (category != null && !category.isEmpty()) {
-                tvCategoryBadge.setVisibility(View.VISIBLE);
-                if (category.contains("Pregnant")) {
-                    tvCategoryBadge.setText("Pregnant");
-                } else if (category.contains("Child")) {
-                    tvCategoryBadge.setText("Child");
+                if (category.toLowerCase().contains("pregnant")) {
+                    tvCategoryPregnant.setVisibility(View.VISIBLE);
+                    // Pregnant are often high risk in this app's logic
+                    tvCategoryHighRisk.setVisibility(View.VISIBLE);
+                } else if (category.toLowerCase().contains("child")) {
+                    tvCategoryChild.setVisibility(View.VISIBLE);
                 } else {
-                    tvCategoryBadge.setText("General");
+                    tvCategoryGeneral.setVisibility(View.VISIBLE);
                 }
             } else {
-                tvCategoryBadge.setVisibility(View.GONE);
+                tvCategoryGeneral.setVisibility(View.VISIBLE);
             }
 
-            // High risk badge (show for pregnant women)
-            if (category != null && category.contains("Pregnant")) {
-                tvRiskBadge.setVisibility(View.VISIBLE);
-            } else {
-                tvRiskBadge.setVisibility(View.GONE);
-            }
-
-            // Pending sync badge
+            // Sync status badge
             if ("PENDING".equals(patient.getSyncStatus())) {
-                tvPendingBadge.setVisibility(View.VISIBLE);
+                layoutPendingBadge.setVisibility(View.VISIBLE);
+                layoutSyncedBadge.setVisibility(View.GONE);
+            } else if ("SYNCED".equals(patient.getSyncStatus())) {
+                layoutPendingBadge.setVisibility(View.GONE);
+                layoutSyncedBadge.setVisibility(View.VISIBLE);
             } else {
-                tvPendingBadge.setVisibility(View.GONE);
+                layoutPendingBadge.setVisibility(View.GONE);
+                layoutSyncedBadge.setVisibility(View.GONE);
             }
 
             // Click listener

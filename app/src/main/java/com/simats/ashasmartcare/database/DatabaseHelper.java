@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.simats.ashasmartcare.models.ChildGrowth;
 import com.simats.ashasmartcare.models.Patient;
@@ -14,6 +15,7 @@ import com.simats.ashasmartcare.models.Vaccination;
 import com.simats.ashasmartcare.models.Visit;
 import com.simats.ashasmartcare.utils.Constants;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Info
     private static final String DATABASE_NAME = "asha_healthcare.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 11;
 
     // Sync Status Constants
     public static final String SYNC_PENDING = "PENDING";
@@ -40,6 +42,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_VISITS = "visits";
     public static final String TABLE_SYNC_QUEUE = "sync_queue";
     public static final String TABLE_USERS = "users";
+    public static final String TABLE_ALERTS_REVIEWED = "alerts_reviewed";
 
     // Common Column Names
     public static final String COL_LOCAL_ID = "local_id";
@@ -54,12 +57,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_DOB = "dob";
     public static final String COL_GENDER = "gender";
     public static final String COL_PHONE = "phone";
-    public static final String COL_STATE = "state";
-    public static final String COL_DISTRICT = "district";
-    public static final String COL_AREA = "area";
+    public static final String COL_ADDRESS = "address";
+    public static final String COL_BLOOD_GROUP = "blood_group";
     public static final String COL_CATEGORY = "category";
     public static final String COL_MEDICAL_NOTES = "medical_notes";
     public static final String COL_PHOTO_PATH = "photo_path";
+    public static final String COL_IS_HIGH_RISK = "is_high_risk";
+    public static final String COL_HIGH_RISK_REASON = "high_risk_reason";
+    public static final String COL_ABHA_ID = "abha_id";
 
     // Pregnancy Visits Table Columns
     public static final String COL_PATIENT_ID = "patient_id";
@@ -104,6 +109,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_WORKER_ID = "worker_id";
     public static final String COL_VILLAGE = "village";
     public static final String COL_PHC = "phc";
+    public static final String COL_STATE = "state";
+    public static final String COL_DISTRICT = "district";
+    public static final String COL_AREA = "area";
     public static final String COL_IS_LOGGED_IN = "is_logged_in";
 
     // Create Table Statements
@@ -115,12 +123,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + COL_DOB + " TEXT,"
             + COL_GENDER + " TEXT,"
             + COL_PHONE + " TEXT,"
-            + COL_STATE + " TEXT,"
-            + COL_DISTRICT + " TEXT,"
-            + COL_AREA + " TEXT,"
+            + COL_ADDRESS + " TEXT,"
+            + COL_BLOOD_GROUP + " TEXT,"
             + COL_CATEGORY + " TEXT,"
             + COL_MEDICAL_NOTES + " TEXT,"
             + COL_PHOTO_PATH + " TEXT,"
+            + COL_IS_HIGH_RISK + " INTEGER DEFAULT 0,"
+            + COL_HIGH_RISK_REASON + " TEXT,"
+            + COL_ABHA_ID + " TEXT,"
             + COL_SYNC_STATUS + " TEXT DEFAULT '" + SYNC_PENDING + "',"
             + COL_CREATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP,"
             + COL_LAST_UPDATED + " DATETIME DEFAULT CURRENT_TIMESTAMP"
@@ -218,10 +228,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + COL_STATE + " TEXT,"
             + COL_DISTRICT + " TEXT,"
             + COL_AREA + " TEXT,"
+            + COL_STATUS + " TEXT,"
             + COL_IS_LOGGED_IN + " INTEGER DEFAULT 0,"
             + COL_SYNC_STATUS + " TEXT DEFAULT '" + SYNC_PENDING + "',"
             + COL_CREATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP,"
             + COL_LAST_UPDATED + " DATETIME DEFAULT CURRENT_TIMESTAMP"
+            + ")";
+
+    private static final String CREATE_TABLE_ALERTS_REVIEWED = "CREATE TABLE " + TABLE_ALERTS_REVIEWED + "("
+            + COL_PATIENT_ID + " INTEGER NOT NULL,"
+            + COL_VISIT_TYPE + " TEXT NOT NULL," // Reuse visit_type for alert type category
+            + "is_reviewed INTEGER DEFAULT 0,"
+            + "PRIMARY KEY (" + COL_PATIENT_ID + ", " + COL_VISIT_TYPE + ")"
             + ")";
 
     // Singleton Instance
@@ -247,19 +265,126 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_VISITS);
         db.execSQL(CREATE_TABLE_SYNC_QUEUE);
         db.execSQL(CREATE_TABLE_USERS);
+        db.execSQL(CREATE_TABLE_ALERTS_REVIEWED);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Drop older tables if existed
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SYNC_QUEUE);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_VISITS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_VACCINATIONS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CHILD_GROWTH);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PREGNANCY_VISITS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PATIENTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        onCreate(db);
+        if (oldVersion < 3) {
+            // Version 2 -> 3 Migration (Original attempt)
+            // We re-run this logic in case it failed or skipped, but safer to do it in
+            // current check
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_IS_HIGH_RISK, "INTEGER DEFAULT 0");
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_HIGH_RISK_REASON, "TEXT");
+        }
+
+        if (oldVersion < 4) {
+            // Version 3 -> 4 Migration (Retry/Ensure columns exist)
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_IS_HIGH_RISK, "INTEGER DEFAULT 0");
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_HIGH_RISK_REASON, "TEXT");
+        }
+
+        if (oldVersion < 5) {
+            // Version 4 -> 5 Migration
+            db.execSQL(CREATE_TABLE_ALERTS_REVIEWED);
+        }
+
+        if (oldVersion < 6) {
+            // Version 5 -> 6 Migration: Ensure last_updated exists in all sync-relevant
+            // tables
+            // This column was added to CREATE statements but missed in migrations 3, 4, 5.
+            String colDef = "DATETIME DEFAULT CURRENT_TIMESTAMP";
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_LAST_UPDATED, colDef);
+            addColumnIfNotExists(db, TABLE_PREGNANCY_VISITS, COL_LAST_UPDATED, colDef);
+            addColumnIfNotExists(db, TABLE_CHILD_GROWTH, COL_LAST_UPDATED, colDef);
+            addColumnIfNotExists(db, TABLE_VACCINATIONS, COL_LAST_UPDATED, colDef);
+            addColumnIfNotExists(db, TABLE_VISITS, COL_LAST_UPDATED, colDef);
+            addColumnIfNotExists(db, TABLE_SYNC_QUEUE, COL_LAST_UPDATED, colDef);
+            addColumnIfNotExists(db, TABLE_USERS, COL_LAST_UPDATED, colDef);
+        }
+
+        if (oldVersion < 7) {
+            // Version 6 -> 7 Migration: Add status column to users table
+            addColumnIfNotExists(db, TABLE_USERS, COL_STATUS, "TEXT");
+        }
+
+        if (oldVersion < 8) {
+            // Version 7 -> 8 Migration: Ensure pregnancy_visits table exists
+            createTableIfNotExists(db, TABLE_PREGNANCY_VISITS, CREATE_TABLE_PREGNANCY_VISITS);
+        }
+
+        if (oldVersion < 10) {
+            // Version 9 -> 10 Migration: Add missing visit fields for sync compatibility
+            addColumnIfNotExists(db, TABLE_VISITS, "purpose", "TEXT");
+            addColumnIfNotExists(db, TABLE_VISITS, "findings", "TEXT");
+            addColumnIfNotExists(db, TABLE_VISITS, "recommendations", "TEXT");
+            addColumnIfNotExists(db, TABLE_VISITS, "next_visit_date", "TEXT");
+        }
+
+        if (oldVersion < 11) {
+            // Version 10 -> 11 Migration: Add abha_id column to patients table
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_ABHA_ID, "TEXT");
+        }
+
+        if (oldVersion < 9) {
+            // Version 8 -> 9 Migration: Schema alignment with backend
+            // Add new columns
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_ADDRESS, "TEXT");
+            addColumnIfNotExists(db, TABLE_PATIENTS, COL_BLOOD_GROUP, "TEXT");
+
+            // Drop old columns (SQLite doesn't support DROP COLUMN before 3.35.0)
+            // Instead, we'll migrate data to new table
+            db.execSQL("CREATE TABLE patients_new ("
+                    + "local_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "server_id INTEGER,"
+                    + "name TEXT NOT NULL,"
+                    + "age INTEGER,"
+                    + "dob TEXT,"
+                    + "gender TEXT,"
+                    + "phone TEXT,"
+                    + "address TEXT,"
+                    + "blood_group TEXT,"
+                    + "category TEXT,"
+                    + "medical_notes TEXT,"
+                    + "photo_path TEXT,"
+                    + "is_high_risk INTEGER DEFAULT 0,"
+                    + "high_risk_reason TEXT,"
+                    + "sync_status TEXT DEFAULT 'PENDING',"
+                    + "created_at DATETIME DEFAULT CURRENT_TIMESTAMP,"
+                    + "last_updated DATETIME DEFAULT CURRENT_TIMESTAMP)");
+
+            // Copy data (map state+district+area to address if address is null)
+            db.execSQL("INSERT INTO patients_new SELECT "
+                    + "local_id, server_id, name, age, dob, gender, phone, "
+                    + "COALESCE(address, area || ', ' || district || ', ' || state, area, ''), "
+                    + "NULL as blood_group, "
+                    + "category, medical_notes, photo_path, is_high_risk, high_risk_reason, "
+                    + "sync_status, created_at, last_updated FROM patients");
+
+            // Replace old table
+            db.execSQL("DROP TABLE patients");
+            db.execSQL("ALTER TABLE patients_new RENAME TO patients");
+        }
+    }
+
+    private void createTableIfNotExists(SQLiteDatabase db, String tableName, String createStatement) {
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                new String[] { tableName });
+        if (cursor.getCount() == 0) {
+            db.execSQL(createStatement);
+        }
+        cursor.close();
+    }
+
+    private void addColumnIfNotExists(SQLiteDatabase db, String tableName, String columnName, String columnType) {
+        try {
+            db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnType);
+        } catch (Exception e) {
+            // Column likely already exists or other error.
+            // SQLite doesn't support "IF NOT EXISTS" for ADD COLUMN in older versions
+            // standardly,
+            // but try-catch is the standard workaround.
+        }
     }
 
     // ==================== PATIENT OPERATIONS ====================
@@ -275,16 +400,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_DOB, patient.getDob());
         values.put(COL_GENDER, patient.getGender());
         values.put(COL_PHONE, patient.getPhone());
-        values.put(COL_STATE, patient.getState());
-        values.put(COL_DISTRICT, patient.getDistrict());
-        values.put(COL_AREA, patient.getArea());
+        values.put(COL_ADDRESS, patient.getAddress());
+        values.put(COL_BLOOD_GROUP, patient.getBloodGroup());
         values.put(COL_CATEGORY, patient.getCategory());
         values.put(COL_MEDICAL_NOTES, patient.getMedicalNotes());
         values.put(COL_PHOTO_PATH, patient.getPhotoPath());
+        values.put(COL_IS_HIGH_RISK, patient.isHighRisk() ? 1 : 0);
+        values.put(COL_HIGH_RISK_REASON, patient.getHighRiskReason());
         values.put(COL_SYNC_STATUS, patient.getSyncStatus());
         values.put(COL_SERVER_ID, patient.getServerId());
 
         long id = db.insert(TABLE_PATIENTS, null, values);
+
+        if (id > 0) {
+            addToSyncQueue(TABLE_PATIENTS, id, "INSERT");
+        }
+
         return id;
     }
 
@@ -344,7 +475,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Update patient
      */
+    /**
+     * Update patient
+     */
     public int updatePatient(Patient patient) {
+        return updatePatient(patient, true);
+    }
+
+    public int updatePatient(Patient patient, boolean addToSyncQueue) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_NAME, patient.getName());
@@ -352,18 +490,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_DOB, patient.getDob());
         values.put(COL_GENDER, patient.getGender());
         values.put(COL_PHONE, patient.getPhone());
-        values.put(COL_STATE, patient.getState());
-        values.put(COL_DISTRICT, patient.getDistrict());
-        values.put(COL_AREA, patient.getArea());
+        values.put(COL_ADDRESS, patient.getAddress());
+        values.put(COL_BLOOD_GROUP, patient.getBloodGroup());
         values.put(COL_CATEGORY, patient.getCategory());
         values.put(COL_MEDICAL_NOTES, patient.getMedicalNotes());
         values.put(COL_PHOTO_PATH, patient.getPhotoPath());
+        values.put(COL_IS_HIGH_RISK, patient.isHighRisk() ? 1 : 0);
+        values.put(COL_HIGH_RISK_REASON, patient.getHighRiskReason());
+        values.put(COL_ABHA_ID, patient.getAbhaId());
         values.put(COL_SYNC_STATUS, patient.getSyncStatus());
         values.put(COL_SERVER_ID, patient.getServerId());
         values.put(COL_LAST_UPDATED, getCurrentTimestamp());
 
-        return db.update(TABLE_PATIENTS, values, COL_LOCAL_ID + " = ?",
+        int rows = db.update(TABLE_PATIENTS, values, COL_LOCAL_ID + " = ?",
                 new String[] { String.valueOf(patient.getLocalId()) });
+
+        if (rows > 0 && addToSyncQueue) {
+            String dataJson = null;
+            try {
+                org.json.JSONObject json = new org.json.JSONObject();
+                json.put("name", patient.getName());
+                dataJson = json.toString();
+            } catch (Exception e) {
+            }
+            addToSyncQueue(TABLE_PATIENTS, patient.getLocalId(), "UPDATE", dataJson);
+        }
+
+        return rows;
     }
 
     /**
@@ -371,7 +524,67 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public int deletePatient(long localId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_PATIENTS, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
+        // Also delete related data
+        db.delete(TABLE_CHILD_GROWTH, COL_PATIENT_ID + " = ?", new String[] { String.valueOf(localId) });
+        db.delete(TABLE_VACCINATIONS, COL_PATIENT_ID + " = ?", new String[] { String.valueOf(localId) });
+        db.delete(TABLE_VISITS, COL_PATIENT_ID + " = ?", new String[] { String.valueOf(localId) });
+        db.delete(TABLE_PREGNANCY_VISITS, COL_PATIENT_ID + " = ?", new String[] { String.valueOf(localId) });
+        db.delete(TABLE_SYNC_QUEUE, COL_TABLE_NAME + " = ? AND " + COL_RECORD_ID + " = ?",
+                new String[] { TABLE_PATIENTS, String.valueOf(localId) });
+
+        int rows = db.delete(TABLE_PATIENTS, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
+        return rows;
+    }
+
+    /**
+     * Delete patient by server ID
+     */
+    public int deletePatientByServerId(int serverId) {
+        Patient patient = getPatientByServerId(serverId);
+        if (patient != null) {
+            return deletePatient(patient.getLocalId());
+        }
+        return 0;
+    }
+
+    /**
+     * Delete Child Growth record
+     */
+    public int deleteChildGrowth(long localId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SYNC_QUEUE, COL_TABLE_NAME + " = ? AND " + COL_RECORD_ID + " = ?",
+                new String[] { TABLE_CHILD_GROWTH, String.valueOf(localId) });
+        return db.delete(TABLE_CHILD_GROWTH, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
+    }
+
+    /**
+     * Delete Vaccination record
+     */
+    public int deleteVaccinationRecord(long localId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SYNC_QUEUE, COL_TABLE_NAME + " = ? AND " + COL_RECORD_ID + " = ?",
+                new String[] { TABLE_VACCINATIONS, String.valueOf(localId) });
+        return db.delete(TABLE_VACCINATIONS, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
+    }
+
+    /**
+     * Delete Visit record
+     */
+    public int deleteVisit(long localId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SYNC_QUEUE, COL_TABLE_NAME + " = ? AND " + COL_RECORD_ID + " = ?",
+                new String[] { TABLE_VISITS, String.valueOf(localId) });
+        return db.delete(TABLE_VISITS, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
+    }
+
+    /**
+     * Delete Pregnancy Visit record
+     */
+    public int deletePregnancyVisit(long localId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SYNC_QUEUE, COL_TABLE_NAME + " = ? AND " + COL_RECORD_ID + " = ?",
+                new String[] { TABLE_PREGNANCY_VISITS, String.valueOf(localId) });
+        return db.delete(TABLE_PREGNANCY_VISITS, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
     }
 
     /**
@@ -441,9 +654,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[] { String.valueOf(localId) });
     }
 
-    /**
-     * Get patient count
-     */
     public int getPatientCount() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_PATIENTS, null);
@@ -453,6 +663,84 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return count;
+    }
+
+    /**
+     * Get patient count
+     */
+    public int getHighRiskPatientsCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_PATIENTS, new String[] { COL_LOCAL_ID },
+                COL_IS_HIGH_RISK + " = 1", null, null, null, null);
+        int count = cursor.getCount();
+        cursor.close();
+        return count;
+    }
+
+    /**
+     * Get list of overdue vaccination alerts
+     */
+    public List<com.simats.ashasmartcare.models.HighRiskAlert> getOverdueVaccinationAlerts() {
+        List<com.simats.ashasmartcare.models.HighRiskAlert> alerts = new java.util.ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT p." + COL_NAME + ", p." + COL_AREA + ", v." + COL_VACCINE_NAME + ", v." + COL_DUE_DATE
+                + ", p." + COL_LOCAL_ID
+                + " FROM " + TABLE_VACCINATIONS + " v "
+                + " JOIN " + TABLE_PATIENTS + " p ON v." + COL_PATIENT_ID + " = p." + COL_LOCAL_ID
+                + " WHERE (v." + COL_STATUS + " = 'Upcoming' OR v." + COL_STATUS + " = 'Scheduled')"
+                + " AND v." + COL_DUE_DATE + " < date('now')";
+
+        Cursor cursor = db.rawQuery(query, null);
+        if (cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(0);
+                String area = cursor.getString(1);
+                String vaccine = cursor.getString(2);
+                String dueDate = cursor.getString(3);
+                long patientId = cursor.getLong(4);
+
+                String alertType = "Overdue Vaccine: " + vaccine + " (Due: " + dueDate + ")";
+                com.simats.ashasmartcare.models.HighRiskAlert alert = new com.simats.ashasmartcare.models.HighRiskAlert(
+                        patientId, name, area, alertType);
+                alert.setReviewed(isAlertReviewed(patientId, alertType));
+                alerts.add(alert);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return alerts;
+    }
+
+    /**
+     * Get list of children with potential growth risks based on weight/height
+     */
+    public List<com.simats.ashasmartcare.models.HighRiskAlert> getChildGrowthRiskAlerts() {
+        List<com.simats.ashasmartcare.models.HighRiskAlert> alerts = new java.util.ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Simplified Logic: Weight < 2.5kg for any child or significant drop (complex)
+        String query = "SELECT p." + COL_NAME + ", p." + COL_AREA + ", g." + COL_WEIGHT + ", g." + COL_GROWTH_STATUS
+                + ", p." + COL_LOCAL_ID
+                + " FROM " + TABLE_CHILD_GROWTH + " g "
+                + " JOIN " + TABLE_PATIENTS + " p ON g." + COL_PATIENT_ID + " = p." + COL_LOCAL_ID
+                + " WHERE CAST(g." + COL_WEIGHT + " AS REAL) < 2.5";
+
+        Cursor cursor = db.rawQuery(query, null);
+        if (cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(0);
+                String area = cursor.getString(1);
+                float weight = cursor.getFloat(2);
+                long patientId = cursor.getLong(4);
+
+                String alertType = "Low Weight Alert: " + weight + "kg";
+                com.simats.ashasmartcare.models.HighRiskAlert alert = new com.simats.ashasmartcare.models.HighRiskAlert(
+                        patientId, name, area, alertType);
+                alert.setReviewed(isAlertReviewed(patientId, alertType));
+                alerts.add(alert);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return alerts;
     }
 
     /**
@@ -483,15 +771,49 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         patient.setDob(cursor.getString(cursor.getColumnIndexOrThrow(COL_DOB)));
         patient.setGender(cursor.getString(cursor.getColumnIndexOrThrow(COL_GENDER)));
         patient.setPhone(cursor.getString(cursor.getColumnIndexOrThrow(COL_PHONE)));
-        patient.setState(cursor.getString(cursor.getColumnIndexOrThrow(COL_STATE)));
-        patient.setDistrict(cursor.getString(cursor.getColumnIndexOrThrow(COL_DISTRICT)));
-        patient.setArea(cursor.getString(cursor.getColumnIndexOrThrow(COL_AREA)));
+
+        // New schema columns
+        int addressIndex = cursor.getColumnIndex(COL_ADDRESS);
+        if (addressIndex != -1) {
+            patient.setAddress(cursor.getString(addressIndex));
+        }
+
+        int bloodGroupIndex = cursor.getColumnIndex(COL_BLOOD_GROUP);
+        if (bloodGroupIndex != -1) {
+            patient.setBloodGroup(cursor.getString(bloodGroupIndex));
+        }
+
         patient.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COL_CATEGORY)));
         patient.setMedicalNotes(cursor.getString(cursor.getColumnIndexOrThrow(COL_MEDICAL_NOTES)));
         patient.setPhotoPath(cursor.getString(cursor.getColumnIndexOrThrow(COL_PHOTO_PATH)));
+
+        // Handle new columns with safety checks for older DB versions/migrations if
+        // column doesn't exist
+        int highRiskIndex = cursor.getColumnIndex(COL_IS_HIGH_RISK);
+        if (highRiskIndex != -1) {
+            patient.setHighRisk(cursor.getInt(highRiskIndex) == 1);
+        }
+
+        int reasonIndex = cursor.getColumnIndex(COL_HIGH_RISK_REASON);
+        if (reasonIndex != -1) {
+            patient.setHighRiskReason(cursor.getString(reasonIndex));
+        }
+
+        int abhaIdIndex = cursor.getColumnIndex(COL_ABHA_ID);
+        if (abhaIdIndex != -1) {
+            patient.setAbhaId(cursor.getString(abhaIdIndex));
+        }
+
         patient.setSyncStatus(cursor.getString(cursor.getColumnIndexOrThrow(COL_SYNC_STATUS)));
         patient.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(COL_CREATED_AT)));
-        patient.setLastUpdated(cursor.getString(cursor.getColumnIndexOrThrow(COL_LAST_UPDATED)));
+
+        int lastUpdatedIndex = cursor.getColumnIndex(COL_LAST_UPDATED);
+        if (lastUpdatedIndex != -1) {
+            patient.setLastUpdated(cursor.getString(lastUpdatedIndex));
+        } else {
+            patient.setLastUpdated(patient.getCreatedAt()); // Fallback
+        }
+
         return patient;
     }
 
@@ -688,6 +1010,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_VACCINATIONS, null, values);
     }
 
+    public List<Vaccination> getUpcomingVaccinations(long patientId) {
+        List<Vaccination> vaccinations = new ArrayList<>();
+        String query = "SELECT * FROM " + TABLE_VACCINATIONS + " WHERE " + COL_PATIENT_ID + " = ? AND (" + COL_STATUS
+                + " = 'Upcoming' OR " + COL_STATUS + " = 'Scheduled' OR " + COL_STATUS + " = 'Pending') ORDER BY "
+                + COL_DUE_DATE + " ASC LIMIT 2";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, new String[] { String.valueOf(patientId) });
+
+        if (cursor.moveToFirst()) {
+            do {
+                vaccinations.add(cursorToVaccination(cursor));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return vaccinations;
+    }
+
     public List<Vaccination> getVaccinationsByPatient(long patientId) {
         List<Vaccination> vaccinations = new ArrayList<>();
         String query = "SELECT * FROM " + TABLE_VACCINATIONS + " WHERE " + COL_PATIENT_ID + " = ? ORDER BY "
@@ -743,17 +1082,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public int updateVaccination(Vaccination vaccination) {
+        return updateVaccination(vaccination, true);
+    }
+
+    public int updateVaccination(Vaccination vaccination, boolean addToSyncQueue) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_GIVEN_DATE, vaccination.getGivenDate());
         values.put(COL_STATUS, vaccination.getStatus());
         values.put(COL_BATCH_NUMBER, vaccination.getBatchNumber());
         values.put(COL_NOTES, vaccination.getNotes());
-        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+        values.put(COL_SYNC_STATUS, vaccination.getSyncStatus());
+        values.put(COL_SERVER_ID, vaccination.getServerId()); // Add Server ID update
         values.put(COL_LAST_UPDATED, getCurrentTimestamp());
 
-        return db.update(TABLE_VACCINATIONS, values, COL_LOCAL_ID + " = ?",
+        int rows = db.update(TABLE_VACCINATIONS, values, COL_LOCAL_ID + " = ?",
                 new String[] { String.valueOf(vaccination.getLocalId()) });
+
+        // Add to sync queue if needed (Vaccinations usually do need sync on update)
+        if (rows > 0 && addToSyncQueue) {
+            addToSyncQueue(TABLE_VACCINATIONS, vaccination.getLocalId(), "UPDATE");
+        }
+        return rows;
     }
 
     public List<Vaccination> getPendingVaccinations() {
@@ -893,12 +1243,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public long addToSyncQueue(String tableName, long recordId, String action, String dataJson) {
         SQLiteDatabase db = this.getWritableDatabase();
+
+        // Check if ANY record exists for this entity (Pending or Failed)
+        // We update any existing record to PENDING to avoid duplicates in the queue
+        String selection = COL_TABLE_NAME + "=? AND " + COL_RECORD_ID + "=?";
+        String[] selectionArgs = { tableName, String.valueOf(recordId) };
+
+        Cursor cursor = db.query(TABLE_SYNC_QUEUE, new String[] { COL_LOCAL_ID }, selection, selectionArgs, null, null,
+                null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            // Record exists (regardless of status), update it to PENDING instead of
+            // inserting new one
+            long queueLocalId = cursor.getLong(0);
+            cursor.close();
+
+            ContentValues updateValues = new ContentValues();
+            updateValues.put(COL_ACTION, action);
+            updateValues.put(COL_SYNC_STATUS, SYNC_PENDING); // Reset to pending
+            if (dataJson != null) {
+                updateValues.put(COL_DATA_JSON, dataJson);
+            }
+            updateValues.put(COL_ERROR_MESSAGE, (String) null); // Clear old error
+            updateValues.put(COL_LAST_UPDATED, getCurrentTimestamp());
+
+            return db.update(TABLE_SYNC_QUEUE, updateValues, COL_LOCAL_ID + " = ?",
+                    new String[] { String.valueOf(queueLocalId) });
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+
         ContentValues values = new ContentValues();
         values.put(COL_TABLE_NAME, tableName);
         values.put(COL_RECORD_ID, recordId);
         values.put(COL_ACTION, action);
         values.put(COL_DATA_JSON, dataJson);
         values.put(COL_SYNC_STATUS, SYNC_PENDING);
+        values.put(COL_CREATED_AT, getCurrentTimestamp()); // Ensure created_at is set
+        values.put(COL_LAST_UPDATED, getCurrentTimestamp());
 
         return db.insert(TABLE_SYNC_QUEUE, null, values);
     }
@@ -912,10 +1296,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public List<SyncRecord> getPendingSyncRecords() {
         List<SyncRecord> records = new ArrayList<>();
-        String query = "SELECT * FROM " + TABLE_SYNC_QUEUE + " WHERE " + COL_SYNC_STATUS + " = ? ORDER BY "
+        // Select both PENDING and FAILED records for retry
+        String query = "SELECT * FROM " + TABLE_SYNC_QUEUE + " WHERE " + COL_SYNC_STATUS + " = ? OR " + COL_SYNC_STATUS
+                + " = ? ORDER BY "
                 + COL_CREATED_AT + " ASC";
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, new String[] { SYNC_PENDING });
+        Cursor cursor = db.rawQuery(query, new String[] { SYNC_PENDING, SYNC_FAILED });
 
         if (cursor.moveToFirst()) {
             do {
@@ -928,6 +1314,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 record.setSyncStatus(cursor.getString(cursor.getColumnIndexOrThrow(COL_SYNC_STATUS)));
                 record.setErrorMessage(cursor.getString(cursor.getColumnIndexOrThrow(COL_ERROR_MESSAGE)));
                 record.setRetryCount(cursor.getInt(cursor.getColumnIndexOrThrow(COL_RETRY_COUNT)));
+                record.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(COL_CREATED_AT)));
                 records.add(record);
             } while (cursor.moveToNext());
         }
@@ -937,7 +1324,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void markSyncRecordComplete(long localId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_SYNC_QUEUE, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
+        ContentValues values = new ContentValues();
+        values.put(COL_SYNC_STATUS, SYNC_SYNCED);
+        values.put(COL_LAST_UPDATED, getCurrentTimestamp());
+        db.update(TABLE_SYNC_QUEUE, values, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
     }
 
     public void markSyncRecordFailed(long localId, String errorMessage) {
@@ -966,9 +1356,118 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Delete sync record
      */
+    public SyncRecord getSyncRecordById(long localId) {
+        String query = "SELECT * FROM " + TABLE_SYNC_QUEUE + " WHERE " + COL_LOCAL_ID + " = ?";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, new String[] { String.valueOf(localId) });
+        SyncRecord record = null;
+        if (cursor.moveToFirst()) {
+            record = new SyncRecord();
+            record.setLocalId(cursor.getLong(cursor.getColumnIndexOrThrow(COL_LOCAL_ID)));
+            record.setTableName(cursor.getString(cursor.getColumnIndexOrThrow(COL_TABLE_NAME)));
+            record.setRecordId(cursor.getLong(cursor.getColumnIndexOrThrow(COL_RECORD_ID)));
+            record.setAction(cursor.getString(cursor.getColumnIndexOrThrow(COL_ACTION)));
+            record.setSyncStatus(cursor.getString(cursor.getColumnIndexOrThrow(COL_SYNC_STATUS)));
+        }
+        cursor.close();
+        return record;
+    }
+
+    public void updateSourceSyncStatus(String tableName, long recordId, String status) {
+        if (tableName == null || tableName.isEmpty())
+            return;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_SYNC_STATUS, status);
+        db.update(tableName, values, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(recordId) });
+    }
+
+    /**
+     * Get the sync status of a record in its source table
+     */
+    public String getSourceSyncStatus(String tableName, long recordId) {
+        if (tableName == null || tableName.isEmpty())
+            return SYNC_PENDING;
+
+        // Special case for tables without sync_status if any
+        if (tableName.equalsIgnoreCase(TABLE_ALERTS_REVIEWED))
+            return SYNC_SYNCED;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT " + COL_SYNC_STATUS + " FROM " + tableName + " WHERE " + COL_LOCAL_ID + " = ?";
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(query, new String[] { String.valueOf(recordId) });
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getString(0);
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error getting source sync status: " + e.getMessage());
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return SYNC_PENDING;
+    }
+
     public void deleteSyncRecord(long localId) {
+        // First, clear the source record status to hide the "Pending" badge
+        SyncRecord record = getSyncRecordById(localId);
+        if (record != null) {
+            updateSourceSyncStatus(record.getTableName(), record.getRecordId(), SYNC_SYNCED);
+        }
+
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_SYNC_QUEUE, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(localId) });
+    }
+
+    public void clearAllPendingRecords() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 1. Get only records with PENDING/FAILED status to clear their source status
+        List<SyncRecord> pending = getPendingSyncRecords();
+        for (SyncRecord record : pending) {
+            updateSourceSyncStatus(record.getTableName(), record.getRecordId(), SYNC_SYNCED);
+        }
+
+        // 2. Clear only non-synced entries from the queue (case-insensitive check for
+        // reliability)
+        db.delete(TABLE_SYNC_QUEUE, "UPPER(" + COL_SYNC_STATUS + ") != ?", new String[] { SYNC_SYNCED.toUpperCase() });
+    }
+
+    /**
+     * Delete ALL sync records for a specific entity
+     */
+    public void deleteSyncRecordsForEntity(String tableName, long recordId) {
+        if (tableName == null)
+            return;
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_SYNC_QUEUE, COL_TABLE_NAME + " = ? AND " + COL_RECORD_ID + " = ?",
+                new String[] { tableName, String.valueOf(recordId) });
+    }
+
+    /**
+     * Clean up old SYNCED records from sync queue (older than 5 minutes)
+     * This prevents the sync status UI from showing stale "recently synced" items
+     */
+    public int cleanupOldSyncedRecords() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        // Calculate timestamp for 5 minutes ago
+        long fiveMinutesAgo = System.currentTimeMillis() - (5 * 60 * 1000);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+        String cutoffTime = sdf.format(new java.util.Date(fiveMinutesAgo));
+        
+        // Delete SYNCED records older than 5 minutes
+        int deleted = db.delete(TABLE_SYNC_QUEUE, 
+                COL_SYNC_STATUS + " = ? AND " + COL_LAST_UPDATED + " < ?",
+                new String[] { "SYNCED", cutoffTime });
+        
+        if (deleted > 0) {
+            android.util.Log.d("DatabaseHelper", "Cleaned up " + deleted + " old SYNCED records from sync queue");
+        }
+        
+        return deleted;
     }
 
     /**
@@ -981,16 +1480,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(query, null);
 
         if (cursor.moveToFirst()) {
+            int localIdIndex = cursor.getColumnIndex(COL_LOCAL_ID);
+            int tableNameIndex = cursor.getColumnIndex(COL_TABLE_NAME);
+            int recordIdIndex = cursor.getColumnIndex(COL_RECORD_ID);
+            int actionIndex = cursor.getColumnIndex(COL_ACTION);
+            int dataJsonIndex = cursor.getColumnIndex(COL_DATA_JSON);
+            int syncStatusIndex = cursor.getColumnIndex(COL_SYNC_STATUS);
+            int errorMessageIndex = cursor.getColumnIndex(COL_ERROR_MESSAGE);
+            int retryCountIndex = cursor.getColumnIndex(COL_RETRY_COUNT);
+            int createdAtIndex = cursor.getColumnIndex(COL_CREATED_AT);
+            int lastUpdatedIndex = cursor.getColumnIndex(COL_LAST_UPDATED);
+
             do {
                 SyncRecord record = new SyncRecord();
-                record.setLocalId(cursor.getLong(cursor.getColumnIndexOrThrow(COL_LOCAL_ID)));
-                record.setTableName(cursor.getString(cursor.getColumnIndexOrThrow(COL_TABLE_NAME)));
-                record.setRecordId(cursor.getLong(cursor.getColumnIndexOrThrow(COL_RECORD_ID)));
-                record.setAction(cursor.getString(cursor.getColumnIndexOrThrow(COL_ACTION)));
-                record.setDataJson(cursor.getString(cursor.getColumnIndexOrThrow(COL_DATA_JSON)));
-                record.setSyncStatus(cursor.getString(cursor.getColumnIndexOrThrow(COL_SYNC_STATUS)));
-                record.setErrorMessage(cursor.getString(cursor.getColumnIndexOrThrow(COL_ERROR_MESSAGE)));
-                record.setRetryCount(cursor.getInt(cursor.getColumnIndexOrThrow(COL_RETRY_COUNT)));
+                if (localIdIndex != -1)
+                    record.setLocalId(cursor.getLong(localIdIndex));
+                if (tableNameIndex != -1)
+                    record.setTableName(cursor.getString(tableNameIndex));
+                if (recordIdIndex != -1)
+                    record.setRecordId(cursor.getLong(recordIdIndex));
+                if (actionIndex != -1)
+                    record.setAction(cursor.getString(actionIndex));
+                if (dataJsonIndex != -1)
+                    record.setDataJson(cursor.getString(dataJsonIndex));
+                if (syncStatusIndex != -1)
+                    record.setSyncStatus(cursor.getString(syncStatusIndex));
+                if (errorMessageIndex != -1)
+                    record.setErrorMessage(cursor.getString(errorMessageIndex));
+                if (retryCountIndex != -1)
+                    record.setRetryCount(cursor.getInt(retryCountIndex));
+                if (createdAtIndex != -1)
+                    record.setCreatedAt(cursor.getString(createdAtIndex));
+                if (lastUpdatedIndex != -1)
+                    record.setLastUpdated(cursor.getString(lastUpdatedIndex));
                 records.add(record);
             } while (cursor.moveToNext());
         }
@@ -1069,6 +1591,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_STATE, state);
         values.put(COL_DISTRICT, district);
         values.put(COL_AREA, area);
+        values.put(COL_STATUS, "pending"); // Point 1: New workers are pending by default
         values.put(COL_IS_LOGGED_IN, 0);
 
         return db.insert(TABLE_USERS, null, values);
@@ -1076,9 +1599,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public boolean validateUser(String phoneOrWorkerId, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        // Allow login with either phone number OR worker ID
+        // Allow login with either phone number OR worker ID, BUT only if status is
+        // active or approved
         String query = "SELECT * FROM " + TABLE_USERS + " WHERE (" + COL_PHONE + " = ? OR " + COL_WORKER_ID
-                + " = ?) AND " + COL_PASSWORD + " = ?";
+                + " = ?) AND " + COL_PASSWORD + " = ? AND (" + COL_STATUS + " = 'active' OR " + COL_STATUS
+                + " = 'approved')";
         Cursor cursor = db.rawQuery(query, new String[] { phoneOrWorkerId, phoneOrWorkerId, password });
         boolean valid = cursor.moveToFirst();
         cursor.close();
@@ -1166,36 +1691,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
                 .format(new java.util.Date());
 
-        String query = "SELECT COUNT(*) FROM " + TABLE_VISITS +
+        int count = 0;
+
+        // Count general visits
+        String queryVisits = "SELECT COUNT(*) FROM " + TABLE_VISITS +
                 " WHERE date(" + COL_VISIT_DATE + ") = ?";
-        Cursor cursor = db.rawQuery(query, new String[] { today });
-
-        int count = 0;
+        Cursor cursor = db.rawQuery(queryVisits, new String[] { today });
         if (cursor.moveToFirst()) {
-            count = cursor.getInt(0);
+            count += cursor.getInt(0);
         }
         cursor.close();
-        return count;
-    }
 
-    /**
-     * Get count of high-risk patients (pregnant women)
-     * Uses medical_notes to identify high-risk cases
-     */
-    public int getHighRiskPatientsCount() {
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        // Count pregnant patients - simplified query
-        String query = "SELECT COUNT(*) FROM " + TABLE_PATIENTS +
-                " WHERE " + COL_CATEGORY + " = 'Pregnant'";
-
-        Cursor cursor = db.rawQuery(query, null);
-
-        int count = 0;
+        // Count pregnancy visits
+        String queryPregnancy = "SELECT COUNT(*) FROM " + TABLE_PREGNANCY_VISITS +
+                " WHERE date(" + COL_VISIT_DATE + ") = ?";
+        cursor = db.rawQuery(queryPregnancy, new String[] { today });
         if (cursor.moveToFirst()) {
-            count = cursor.getInt(0);
+            count += cursor.getInt(0);
         }
         cursor.close();
+
         return count;
     }
 
@@ -1221,6 +1736,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Update PregnancyVisit
      */
     public int updatePregnancyVisit(PregnancyVisit visit) {
+        return updatePregnancyVisit(visit, true);
+    }
+
+    public int updatePregnancyVisit(PregnancyVisit visit, boolean addToSyncQueue) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("visit_date", visit.getVisitDate());
@@ -1235,13 +1754,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("high_risk_reason", visit.getHighRiskReason());
         values.put("next_visit_date", visit.getNextVisitDate());
         values.put("notes", visit.getNotes());
-        values.put(COL_SYNC_STATUS, Constants.SYNC_PENDING);
+        values.put(COL_SYNC_STATUS, visit.getSyncStatus());
+        values.put(COL_SERVER_ID, visit.getServerId());
         values.put(COL_LAST_UPDATED, getCurrentTimestamp());
 
         int result = db.update(TABLE_PREGNANCY_VISITS, values, COL_LOCAL_ID + " = ?",
                 new String[] { String.valueOf(visit.getLocalId()) });
 
-        if (result > 0) {
+        if (result > 0 && addToSyncQueue) {
             addToSyncQueue(TABLE_PREGNANCY_VISITS, visit.getLocalId(), Constants.ACTION_UPDATE);
         }
         return result;
@@ -1283,6 +1803,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Update Visit
      */
     public int updateVisit(Visit visit) {
+        return updateVisit(visit, true);
+    }
+
+    public int updateVisit(Visit visit, boolean addToSyncQueue) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("visit_type", visit.getVisitType());
@@ -1292,13 +1816,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("recommendations", visit.getRecommendations());
         values.put("next_visit_date", visit.getNextVisitDate());
         values.put("notes", visit.getNotes());
-        values.put(COL_SYNC_STATUS, Constants.SYNC_PENDING);
+        values.put(COL_SYNC_STATUS, visit.getSyncStatus());
+        values.put(COL_SERVER_ID, visit.getServerId());
         values.put(COL_LAST_UPDATED, getCurrentTimestamp());
 
         int result = db.update(TABLE_VISITS, values, COL_LOCAL_ID + " = ?",
                 new String[] { String.valueOf(visit.getLocalId()) });
 
-        if (result > 0) {
+        if (result > 0 && addToSyncQueue) {
             addToSyncQueue(TABLE_VISITS, visit.getLocalId(), Constants.ACTION_UPDATE);
         }
         return result;
@@ -1324,6 +1849,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Update ChildGrowth
      */
     public int updateChildGrowth(ChildGrowth growth) {
+        return updateChildGrowth(growth, true);
+    }
+
+    public int updateChildGrowth(ChildGrowth growth, boolean addToSyncQueue) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("record_date", growth.getRecordDate());
@@ -1335,13 +1864,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("nutritional_status", growth.getNutritionalStatus());
         values.put("milestones", growth.getMilestones());
         values.put("notes", growth.getNotes());
-        values.put(COL_SYNC_STATUS, Constants.SYNC_PENDING);
+        values.put(COL_SYNC_STATUS, growth.getSyncStatus());
+        values.put(COL_SERVER_ID, growth.getServerId());
         values.put(COL_LAST_UPDATED, getCurrentTimestamp());
 
         int result = db.update(TABLE_CHILD_GROWTH, values, COL_LOCAL_ID + " = ?",
                 new String[] { String.valueOf(growth.getLocalId()) });
 
-        if (result > 0) {
+        if (result > 0 && addToSyncQueue) {
             addToSyncQueue(TABLE_CHILD_GROWTH, growth.getLocalId(), Constants.ACTION_UPDATE);
         }
         return result;
@@ -1353,9 +1883,73 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Simplified method to add patient with basic details
      */
+    // Overloaded method - defaults to adding to sync queue for backward
+    // compatibility
     public long addPatient(String name, int age, String gender, String category,
-            String village, String phone, String abhaId,
-            String ashaPhone, String currentDate) {
+            String address, String phone, String abhaId, String bloodGroup,
+            String ashaPhone, String currentDate, boolean isHighRisk, String highRiskReason) {
+        return addPatient(name, age, gender, category, address, phone, abhaId, bloodGroup,
+                ashaPhone, currentDate, isHighRisk, highRiskReason, true, null);
+    }
+
+    // New method with shouldAddToSyncQueue parameter for online-first architecture
+    public long addPatient(String name, int age, String gender, String category,
+            String address, String phone, String abhaId, String bloodGroup,
+            String ashaPhone, String currentDate, boolean isHighRisk, String highRiskReason,
+            boolean shouldAddToSyncQueue, String dataJson) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_NAME, name);
+        values.put(COL_AGE, age);
+        values.put(COL_GENDER, gender);
+        values.put(COL_CATEGORY, category);
+        values.put(COL_ADDRESS, address);
+        values.put(COL_BLOOD_GROUP, bloodGroup);
+        values.put(COL_PHONE, phone);
+        values.put(COL_ABHA_ID, abhaId);
+        values.put(COL_IS_HIGH_RISK, isHighRisk ? 1 : 0);
+        values.put(COL_HIGH_RISK_REASON, highRiskReason);
+        values.put(COL_SYNC_STATUS, shouldAddToSyncQueue ? SYNC_PENDING : SYNC_SYNCED);
+        values.put(COL_CREATED_AT, currentDate);
+        values.put(COL_LAST_UPDATED, currentDate);
+
+        long patientId = db.insert(TABLE_PATIENTS, null, values);
+
+        if (patientId > 0 && shouldAddToSyncQueue) {
+            if (dataJson == null) {
+                try {
+                    org.json.JSONObject json = new org.json.JSONObject();
+                    json.put("name", name);
+                    dataJson = json.toString();
+                } catch (Exception e) {
+                }
+            }
+            addToSyncQueue(TABLE_PATIENTS, patientId, "INSERT", dataJson);
+        }
+
+        return patientId;
+    }
+
+    /**
+     * Update patient with server ID after successful backend sync
+     */
+    public void updatePatientServerId(long localPatientId, int serverId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_SERVER_ID, serverId);
+        values.put(COL_SYNC_STATUS, SYNC_SYNCED);
+        values.put(COL_LAST_UPDATED, getCurrentTimestamp());
+
+        db.update(TABLE_PATIENTS, values, COL_LOCAL_ID + " = ?",
+                new String[] { String.valueOf(localPatientId) });
+    }
+
+    /**
+     * Update patient data from backend sync
+     */
+    public void updatePatientFromBackend(long localPatientId, String name, int age, String gender,
+            String category, String village, String phone,
+            int isHighRisk, String highRiskReason) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_NAME, name);
@@ -1364,29 +1958,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COL_CATEGORY, category);
         values.put(COL_AREA, village);
         values.put(COL_PHONE, phone);
-        // Store ABHA ID in medical_notes for now
-        if (abhaId != null && !abhaId.isEmpty()) {
-            values.put(COL_MEDICAL_NOTES, "ABHA ID: " + abhaId);
-        }
-        values.put(COL_SYNC_STATUS, SYNC_PENDING);
-        values.put(COL_CREATED_AT, currentDate);
-        values.put(COL_LAST_UPDATED, currentDate);
+        values.put(COL_ABHA_ID, ""); // Placeholder, adjust if needed
+        values.put(COL_IS_HIGH_RISK, isHighRisk);
+        values.put(COL_HIGH_RISK_REASON, highRiskReason);
+        values.put(COL_SYNC_STATUS, SYNC_SYNCED);
+        values.put(COL_LAST_UPDATED, getCurrentTimestamp());
 
-        long patientId = db.insert(TABLE_PATIENTS, null, values);
-
-        if (patientId > 0) {
-            addToSyncQueue(TABLE_PATIENTS, patientId, "INSERT");
-        }
-
-        return patientId;
+        db.update(TABLE_PATIENTS, values, COL_LOCAL_ID + " = ?",
+                new String[] { String.valueOf(localPatientId) });
     }
 
     /**
      * Add pregnancy visit data
      */
+    // Overloaded method - defaults to adding to sync queue
     public long addPregnancyVisit(long patientId, String lmpDate, String edd,
             String bloodPressure, String weight, String hemoglobin,
             String dangerSigns, String medicines, String nextVisitDate) {
+        return addPregnancyVisit(patientId, lmpDate, edd, bloodPressure, weight,
+                hemoglobin, dangerSigns, medicines, nextVisitDate, true, null);
+    }
+
+    // New method with shouldAddToSyncQueue parameter for online-first architecture
+    public long addPregnancyVisit(long patientId, String lmpDate, String edd,
+            String bloodPressure, String weight, String hemoglobin,
+            String dangerSigns, String medicines, String nextVisitDate,
+            boolean shouldAddToSyncQueue, String dataJson) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_PATIENT_ID, patientId);
@@ -1408,12 +2005,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         notes.append("Next Visit Date: ").append(nextVisitDate);
 
         values.put(COL_NOTES, notes.toString());
-        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+        values.put(COL_SYNC_STATUS, shouldAddToSyncQueue ? SYNC_PENDING : SYNC_SYNCED);
 
         long visitId = db.insert(TABLE_PREGNANCY_VISITS, null, values);
 
-        if (visitId > 0) {
-            addToSyncQueue(TABLE_PREGNANCY_VISITS, visitId, "INSERT");
+        if (visitId > 0 && shouldAddToSyncQueue) {
+            addToSyncQueue(TABLE_PREGNANCY_VISITS, visitId, "INSERT", dataJson);
+
+            // ALSO: Create vaccination record if Tetanus Injection was given
+            if (medicines != null && medicines.contains("Tetanus Injection")) {
+                com.simats.ashasmartcare.models.Vaccination v = new com.simats.ashasmartcare.models.Vaccination();
+                v.setPatientId(patientId);
+                v.setVaccineName("Tetanus Injection");
+                v.setStatus("Given");
+                v.setGivenDate(getCurrentTimestamp());
+                v.setSyncStatus(SYNC_PENDING);
+                insertVaccination(v);
+            }
         }
 
         return visitId;
@@ -1422,9 +2030,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Add child growth data
      */
+    // Overloaded method - defaults to adding to sync queue
     public long addChildGrowth(long patientId, String weight, String height, String muac,
             String temperature, String breastfeeding, String complementaryFeeding,
             String appetite, String symptoms, String lastVaccine, String nextVaccineDate) {
+        return addChildGrowth(patientId, weight, height, muac, temperature, breastfeeding,
+                complementaryFeeding, appetite, symptoms, lastVaccine, nextVaccineDate, true, null);
+    }
+
+    // New method with shouldAddToSyncQueue parameter for online-first architecture
+    public long addChildGrowth(long patientId, String weight, String height, String muac,
+            String temperature, String breastfeeding, String complementaryFeeding,
+            String appetite, String symptoms, String lastVaccine, String nextVaccineDate,
+            boolean shouldAddToSyncQueue, String dataJson) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_PATIENT_ID, patientId);
@@ -1447,23 +2065,168 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         notes.append("Next Vaccine Date: ").append(nextVaccineDate);
 
         values.put(COL_GROWTH_STATUS, notes.toString());
-        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+        values.put(COL_SYNC_STATUS, shouldAddToSyncQueue ? SYNC_PENDING : SYNC_SYNCED);
 
         long growthId = db.insert(TABLE_CHILD_GROWTH, null, values);
 
-        if (growthId > 0) {
-            addToSyncQueue(TABLE_CHILD_GROWTH, growthId, "INSERT");
+        if (growthId > 0 && shouldAddToSyncQueue) {
+            addToSyncQueue(TABLE_CHILD_GROWTH, growthId, "INSERT", dataJson);
+
+            // ALSO: Create vaccination records if provided
+            if (lastVaccine != null && !lastVaccine.isEmpty() && !lastVaccine.equals("Select Vaccine")) {
+                if (!isVaccinationExists(patientId, lastVaccine)) {
+                    com.simats.ashasmartcare.models.Vaccination v = new com.simats.ashasmartcare.models.Vaccination();
+                    v.setPatientId(patientId);
+                    v.setVaccineName(lastVaccine);
+                    v.setStatus("Given");
+                    v.setGivenDate(getCurrentTimestamp());
+                    v.setSyncStatus(SYNC_PENDING);
+                    insertVaccination(v);
+                }
+            }
+
+            if (nextVaccineDate != null && !nextVaccineDate.isEmpty()) {
+                if (!isVaccinationExists(patientId, "Scheduled Dose")) {
+                    com.simats.ashasmartcare.models.Vaccination v = new com.simats.ashasmartcare.models.Vaccination();
+                    v.setPatientId(patientId);
+                    v.setVaccineName("Scheduled Dose"); // Generic name if specific not selected
+                    v.setStatus("Scheduled");
+                    v.setScheduledDate(convertDateToDB(nextVaccineDate));
+                    v.setSyncStatus(SYNC_PENDING);
+                    insertVaccination(v);
+                }
+            }
         }
 
         return growthId;
     }
 
+    public boolean isVaccinationExists(long patientId, String vaccineName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_VACCINATIONS, new String[] { COL_LOCAL_ID },
+                COL_PATIENT_ID + " = ? AND " + COL_VACCINE_NAME + " = ?",
+                new String[] { String.valueOf(patientId), vaccineName },
+                null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
+
+    /**
+     * Migration logic to populate vaccinations table from existing notes in other
+     * tables.
+     * This handles cases where vaccinations were "mentioned" in notes but no record
+     * was created.
+     */
+    public void syncMissingVaccinations() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 1. Sync from pregnancy_visits
+        String pregQuery = "SELECT " + COL_PATIENT_ID + ", " + COL_NOTES + " FROM " + TABLE_PREGNANCY_VISITS;
+        Cursor pregCursor = db.rawQuery(pregQuery, null);
+        if (pregCursor.moveToFirst()) {
+            do {
+                long patientId = pregCursor.getLong(0);
+                String notes = pregCursor.getString(1);
+                if (notes != null && notes.contains("Medicines: ") && notes.contains("Tetanus Injection")) {
+                    if (!isVaccinationExists(patientId, "Tetanus Injection")) {
+                        com.simats.ashasmartcare.models.Vaccination v = new com.simats.ashasmartcare.models.Vaccination();
+                        v.setPatientId(patientId);
+                        v.setVaccineName("Tetanus Injection");
+                        v.setStatus("Given");
+                        v.setGivenDate(getCurrentTimestamp());
+                        v.setSyncStatus(SYNC_PENDING);
+                        insertVaccination(v);
+                    }
+                }
+            } while (pregCursor.moveToNext());
+        }
+        pregCursor.close();
+
+        // 2. Sync from child_growth
+        String childQuery = "SELECT " + COL_PATIENT_ID + ", " + COL_GROWTH_STATUS + " FROM " + TABLE_CHILD_GROWTH;
+        Cursor childCursor = db.rawQuery(childQuery, null);
+        if (childCursor.moveToFirst()) {
+            do {
+                long patientId = childCursor.getLong(0);
+                String notes = childCursor.getString(1);
+                if (notes != null) {
+                    // Extract last vaccine
+                    if (notes.contains("Last Vaccine: ")) {
+                        String lastVaccineLine = extractNoteLine(notes, "Last Vaccine: ");
+                        if (lastVaccineLine != null && !lastVaccineLine.isEmpty()
+                                && !lastVaccineLine.equals("Select Vaccine")) {
+                            if (!isVaccinationExists(patientId, lastVaccineLine)) {
+                                com.simats.ashasmartcare.models.Vaccination v = new com.simats.ashasmartcare.models.Vaccination();
+                                v.setPatientId(patientId);
+                                v.setVaccineName(lastVaccineLine);
+                                v.setStatus("Given");
+                                v.setGivenDate(getCurrentTimestamp());
+                                v.setSyncStatus(SYNC_PENDING);
+                                insertVaccination(v);
+                            }
+                        }
+                    }
+                    // Extract next vaccine date
+                    if (notes.contains("Next Vaccine Date: ")) {
+                        String nextDateStr = extractNoteLine(notes, "Next Vaccine Date: ");
+                        if (nextDateStr != null && !nextDateStr.isEmpty()) {
+                            if (!isVaccinationExists(patientId, "Scheduled Dose")) {
+                                com.simats.ashasmartcare.models.Vaccination v = new com.simats.ashasmartcare.models.Vaccination();
+                                v.setPatientId(patientId);
+                                v.setVaccineName("Scheduled Dose");
+                                v.setStatus("Scheduled");
+                                v.setScheduledDate(convertDateToDB(nextDateStr));
+                                v.setSyncStatus(SYNC_PENDING);
+                                insertVaccination(v);
+                            }
+                        }
+                    }
+                }
+            } while (childCursor.moveToNext());
+        }
+        childCursor.close();
+    }
+
+    private String extractNoteLine(String notes, String prefix) {
+        String[] lines = notes.split("\n");
+        for (String line : lines) {
+            if (line.startsWith(prefix)) {
+                return line.substring(prefix.length()).trim();
+            }
+        }
+        return null;
+    }
+
+    private String convertDateToDB(String uiDate) {
+        if (uiDate == null || uiDate.isEmpty())
+            return null;
+        // uiDate is MM/dd/yyyy
+        try {
+            java.text.SimpleDateFormat uiFormat = new java.text.SimpleDateFormat("MM/dd/yyyy", java.util.Locale.US);
+            java.text.SimpleDateFormat dbFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+            return dbFormat.format(uiFormat.parse(uiDate));
+        } catch (Exception e) {
+            return uiDate; // Fallback
+        }
+    }
+
     /**
      * Add general visit data
      */
+    // Default version - adds to sync queue (backward compatibility)
     public long addGeneralVisit(long patientId, String bloodPressure, String weight,
             String sugar, String symptoms, String tobacco, String alcohol,
             String physicalActivity, String referral, String followUpDate) {
+        return addGeneralVisit(patientId, bloodPressure, weight, sugar, symptoms,
+                tobacco, alcohol, physicalActivity, referral, followUpDate, true, null);
+    }
+
+    // Overloaded version with shouldAddToSyncQueue parameter (online-first support)
+    public long addGeneralVisit(long patientId, String bloodPressure, String weight,
+            String sugar, String symptoms, String tobacco, String alcohol,
+            String physicalActivity, String referral, String followUpDate,
+            boolean shouldAddToSyncQueue, String dataJson) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_PATIENT_ID, patientId);
@@ -1487,12 +2250,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         description.append("Follow-up Date: ").append(followUpDate);
 
         values.put(COL_DESCRIPTION, description.toString());
-        values.put(COL_SYNC_STATUS, SYNC_PENDING);
+        // Set sync status: SYNCED if online (don't add to queue), PENDING if offline
+        values.put(COL_SYNC_STATUS, shouldAddToSyncQueue ? SYNC_PENDING : SYNC_SYNCED);
 
         long visitId = db.insert(TABLE_VISITS, null, values);
 
-        if (visitId > 0) {
-            addToSyncQueue(TABLE_VISITS, visitId, "INSERT");
+        // Only add to sync queue if offline
+        if (visitId > 0 && shouldAddToSyncQueue) {
+            addToSyncQueue(TABLE_VISITS, visitId, "INSERT", dataJson);
         }
 
         return visitId;
@@ -1522,6 +2287,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             addToSyncQueue(TABLE_USERS, id, "INSERT");
         }
         return id;
+    }
+
+    /**
+     * Update worker status
+     */
+    public boolean updateWorkerStatus(long id, String status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_STATUS, status);
+        values.put(COL_SYNC_STATUS, SYNC_PENDING); // Mark for sync
+
+        int rows = db.update(TABLE_USERS, values, COL_LOCAL_ID + " = ?", new String[] { String.valueOf(id) });
+        if (rows > 0) {
+            addToSyncQueue(TABLE_USERS, id, "UPDATE");
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Update worker status by server ID
+     */
+    public boolean updateWorkerStatusByServerId(int serverId, String status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_STATUS, status);
+        int rows = db.update(TABLE_USERS, values, COL_SERVER_ID + " = ?", new String[] { String.valueOf(serverId) });
+        return rows > 0;
+    }
+
+    /**
+     * Update worker status by phone or worker ID
+     */
+    public boolean updateUserStatus(String phoneOrId, String status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_STATUS, status);
+        int rows = db.update(TABLE_USERS, values, COL_PHONE + " = ? OR " + COL_WORKER_ID + " = ?",
+                new String[] { phoneOrId, phoneOrId });
+        return rows > 0;
     }
 
     /**
@@ -1579,5 +2384,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             worker.setCreatedAt(cursor.getString(createdAtIdx));
 
         return worker;
+    }
+
+    /**
+     * Mark an AI alert as reviewed to persist its state
+     */
+    public void markAlertReviewed(long patientId, String alertType, boolean isReviewed) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_PATIENT_ID, patientId);
+        values.put(COL_VISIT_TYPE, alertType);
+        values.put("is_reviewed", isReviewed ? 1 : 0);
+
+        db.insertWithOnConflict(TABLE_ALERTS_REVIEWED, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    /**
+     * Check if an AI alert has been reviewed
+     */
+    public boolean isAlertReviewed(long patientId, String alertType) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT is_reviewed FROM " + TABLE_ALERTS_REVIEWED + " WHERE " + COL_PATIENT_ID + " = ? AND "
+                + COL_VISIT_TYPE + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[] { String.valueOf(patientId), alertType });
+
+        boolean isReviewed = false;
+        if (cursor.moveToFirst()) {
+            isReviewed = cursor.getInt(0) == 1;
+        }
+        cursor.close();
+        return isReviewed;
     }
 }

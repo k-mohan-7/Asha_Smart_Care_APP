@@ -1,55 +1,43 @@
 package com.simats.ashasmartcare.models;
 
-import com.google.gson.annotations.SerializedName;
-
-/**
- * SyncRecord model class for tracking sync queue items
- */
 public class SyncRecord {
-
-    @SerializedName("local_id")
     private long localId;
-
-    @SerializedName("table_name")
+    private int serverId;
     private String tableName;
-
-    @SerializedName("record_id")
     private long recordId;
-
-    @SerializedName("action")
     private String action;
-
-    @SerializedName("data_json")
     private String dataJson;
-
-    @SerializedName("sync_status")
     private String syncStatus;
-
-    @SerializedName("error_message")
     private String errorMessage;
-
-    @SerializedName("retry_count")
     private int retryCount;
-
-    @SerializedName("created_at")
+    private long lastSyncAttempt;
     private String createdAt;
-
-    @SerializedName("last_updated")
     private String lastUpdated;
 
-    // Constructors
+    // UI specific fields (optional, can be derived)
+    private String title;
+    private String timestamp;
+    private boolean isSynced;
+    private String type;
+
     public SyncRecord() {
-        this.syncStatus = "PENDING";
-        this.retryCount = 0;
     }
 
-    public SyncRecord(String tableName, long recordId, String action, String dataJson) {
-        this.tableName = tableName;
-        this.recordId = recordId;
-        this.action = action;
-        this.dataJson = dataJson;
-        this.syncStatus = "PENDING";
-        this.retryCount = 0;
+    // Constructor for UI list
+    public SyncRecord(String title, String timestamp, boolean isSynced, String type) {
+        this.title = title;
+        this.timestamp = timestamp;
+        this.isSynced = isSynced;
+        this.type = type;
+        this.syncStatus = isSynced ? "SYNCED" : "PENDING"; // Default fallback
+    }
+
+    public SyncRecord(String title, String timestamp, String status, String type) {
+        this.title = title;
+        this.timestamp = timestamp;
+        this.syncStatus = status;
+        this.isSynced = "SYNCED".equalsIgnoreCase(status);
+        this.type = type;
     }
 
     // Getters and Setters
@@ -59,6 +47,18 @@ public class SyncRecord {
 
     public void setLocalId(long localId) {
         this.localId = localId;
+    }
+
+    public long getId() {
+        return localId;
+    } // Alias for getLocalId as used in SyncService
+
+    public int getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(int serverId) {
+        this.serverId = serverId;
     }
 
     public String getTableName() {
@@ -99,6 +99,7 @@ public class SyncRecord {
 
     public void setSyncStatus(String syncStatus) {
         this.syncStatus = syncStatus;
+        this.isSynced = "SYNCED".equalsIgnoreCase(syncStatus);
     }
 
     public String getErrorMessage() {
@@ -116,10 +117,13 @@ public class SyncRecord {
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
     }
-    
-    public void setLastSyncAttempt(long timestamp) {
-        // Compatibility method - uses lastUpdated
-        this.lastUpdated = String.valueOf(timestamp);
+
+    public long getLastSyncAttempt() {
+        return lastSyncAttempt;
+    }
+
+    public void setLastSyncAttempt(long lastSyncAttempt) {
+        this.lastSyncAttempt = lastSyncAttempt;
     }
 
     public String getCreatedAt() {
@@ -138,36 +142,28 @@ public class SyncRecord {
         this.lastUpdated = lastUpdated;
     }
 
-    // ID alias methods
-    public long getId() {
-        return localId;
-    }
-    
-    public void setId(long id) {
-        this.localId = id;
+    // UI Getters
+    public String getTitle() {
+        return title;
     }
 
-    // Helper methods
-    public boolean isPending() {
-        return "PENDING".equals(syncStatus);
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public boolean isFailed() {
-        return "FAILED".equals(syncStatus);
+    public String getTimestamp() {
+        return timestamp;
     }
 
-    public void incrementRetryCount() {
-        this.retryCount++;
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
-    @Override
-    public String toString() {
-        return "SyncRecord{" +
-                "localId=" + localId +
-                ", tableName='" + tableName + '\'' +
-                ", recordId=" + recordId +
-                ", action='" + action + '\'' +
-                ", syncStatus='" + syncStatus + '\'' +
-                '}';
+    public boolean isSynced() {
+        return isSynced;
+    }
+
+    public void setSynced(boolean synced) {
+        isSynced = synced;
     }
 }

@@ -25,10 +25,9 @@ import com.simats.ashasmartcare.utils.SessionManager;
 public class SettingsActivity extends AppCompatActivity {
 
     private View ivBack;
-    private SwitchCompat switchNotifications;
     private TextView tvSyncTime;
     private Button btnSyncNow;
-    private LinearLayout layoutFaqs, layoutOfflineGuide, layoutPrivacyPolicy, layoutTerms, layoutNotifications;
+    private LinearLayout layoutFaqs, layoutOfflineGuide, layoutPrivacyPolicy, layoutTerms;
     private BottomNavigationView bottomNavigation;
 
     private SessionManager sessionManager;
@@ -48,14 +47,12 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void initViews() {
         ivBack = findViewById(R.id.ivBack);
-        switchNotifications = findViewById(R.id.switchNotifications);
         tvSyncTime = findViewById(R.id.tvSyncTime);
         btnSyncNow = findViewById(R.id.btnSyncNow);
         layoutFaqs = findViewById(R.id.layoutFaqs);
         layoutOfflineGuide = findViewById(R.id.layoutOfflineGuide);
         layoutPrivacyPolicy = findViewById(R.id.layoutPrivacyPolicy);
         layoutTerms = findViewById(R.id.layoutTerms);
-        layoutNotifications = findViewById(R.id.layoutNotifications);
         bottomNavigation = findViewById(R.id.bottomNavigation);
     }
 
@@ -66,10 +63,6 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void loadPreferences() {
-        // Load notification preference
-        boolean notificationsEnabled = prefs.getBoolean("notifications_enabled", true);
-        switchNotifications.setChecked(notificationsEnabled);
-
         // Load last sync time
         updateSyncTime();
     }
@@ -101,34 +94,27 @@ public class SettingsActivity extends AppCompatActivity {
     private void setupListeners() {
         ivBack.setOnClickListener(v -> finish());
 
-        // Notification toggle
-        switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean("notifications_enabled", isChecked).apply();
-            Toast.makeText(this, isChecked ? "Notifications enabled" : "Notifications disabled", Toast.LENGTH_SHORT)
-                    .show();
-        });
-
         // Sync Now button
         btnSyncNow.setOnClickListener(v -> performSync());
 
         // FAQs
         layoutFaqs.setOnClickListener(v -> {
-            Toast.makeText(this, "FAQs - Coming soon", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, com.simats.ashasmartcare.activities.FaqsActivity.class));
         });
 
         // Offline Usage Guide
         layoutOfflineGuide.setOnClickListener(v -> {
-            Toast.makeText(this, "Offline Usage Guide - Coming soon", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, com.simats.ashasmartcare.activities.OfflineGuideActivity.class));
         });
 
         // Privacy Policy
         layoutPrivacyPolicy.setOnClickListener(v -> {
-            Toast.makeText(this, "Privacy Policy - Coming soon", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, com.simats.ashasmartcare.activities.PrivacyPolicyActivity.class));
         });
 
         // Terms & Conditions
         layoutTerms.setOnClickListener(v -> {
-            Toast.makeText(this, "Terms & Conditions - Coming soon", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, com.simats.ashasmartcare.activities.TermsActivity.class));
         });
 
         // Bottom Navigation
@@ -140,18 +126,22 @@ public class SettingsActivity extends AppCompatActivity {
 
                         if (itemId == R.id.nav_home) {
                             startActivity(new Intent(SettingsActivity.this, HomeActivity.class));
+                            overridePendingTransition(0, 0); // Instant transition like WhatsApp
                             finish();
                             return true;
                         } else if (itemId == R.id.nav_profile) {
                             startActivity(new Intent(SettingsActivity.this, ProfileActivity.class));
+                            overridePendingTransition(0, 0); // Instant transition like WhatsApp
                             finish();
                             return true;
                         } else if (itemId == R.id.nav_visits) {
                             startActivity(new Intent(SettingsActivity.this, VisitHistoryActivity.class));
+                            overridePendingTransition(0, 0); // Instant transition like WhatsApp
                             finish();
                             return true;
                         } else if (itemId == R.id.nav_alerts) {
                             startActivity(new Intent(SettingsActivity.this, PatientAlertsActivity.class));
+                            overridePendingTransition(0, 0); // Instant transition like WhatsApp
                             finish();
                             return true;
                         }

@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    
+    <!-- Profile Image Permissions -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:name=".AshaApplication"
@@ -61,6 +65,18 @@
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
+            android:name=".activities.AdminProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.EditAdminProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.AdminSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
             android:name=".activities.WorkerProfileActivity"
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
@@ -73,12 +89,31 @@
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <activity
+            android:name=".activities.AdminPendingApprovalsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
             android:name=".activities.SyncStatusActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.SyncHistoryActivity"
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
         <!-- Register Activity -->
         <activity
             android:name=".activities.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> 
+        <!-- Pending Approval Activity -->
+        <activity
+            android:name=".activities.PendingApprovalActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        
+        <!-- Disabled Account Activity -->
+        <activity
+            android:name=".activities.DisabledAccountActivity"
             android:exported="false"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Main Home Activity -->
         <activity
@@ -87,6 +122,11 @@
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Patient Activities -->
         <activity
             android:name=".PatientListActivity"
+            android:exported="false"
+            android:parentActivityName=".activities.HomeActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".PatientsActivity"
             android:exported="false"
             android:parentActivityName=".activities.HomeActivity"
             android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
@@ -170,7 +210,40 @@
             android:name=".PatientDetailActivity"
             android:exported="false"
             android:parentActivityName=".PatientsActivity"
-            android:theme="@style/Theme.ASHASmartCare.NoActionBar" /> <!-- Network Change Receiver -->
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".PregnancyProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".PatientsActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".EditProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".ChildProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".PatientsActivity"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        
+        <!-- Settings Pages -->
+        <activity
+            android:name=".activities.FaqsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.OfflineGuideActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.PrivacyPolicyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+        <activity
+            android:name=".activities.TermsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ASHASmartCare.NoActionBar" />
+ <!-- Network Change Receiver -->
         <receiver
             android:name=".receivers.NetworkChangeReceiver"
             android:exported="false">
@@ -187,6 +260,10 @@
         </receiver> <!-- Sync Service -->
         <service
             android:name=".services.SyncService"
+            android:exported="false" />
+        <!-- Network Monitor Service -->
+        <service
+            android:name=".services.NetworkMonitorService"
             android:exported="false" />
     </application>
 

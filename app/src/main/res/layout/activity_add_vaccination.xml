@@ -49,12 +49,15 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/white"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/white"
                     android:orientation="vertical"
                     android:padding="16dp">
 
@@ -76,7 +79,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Vaccine Name *"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp" />
 
                     <Spinner
@@ -84,6 +87,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="4dp"
+                        android:popupBackground="#FFFFFF"
                         android:background="@drawable/bg_edit_text" />
 
                     <TextView
@@ -91,7 +95,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="Status *"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp" />
 
                     <Spinner
@@ -99,6 +103,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="4dp"
+                        android:popupBackground="#FFFFFF"
                         android:background="@drawable/bg_edit_text" />
 
                     <LinearLayout
@@ -118,7 +123,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Scheduled Date *"
-                                android:textColor="@color/text_secondary"
+                                android:textColor="@color/text_primary"
                                 android:textSize="14sp" />
 
                             <EditText
@@ -131,6 +136,8 @@
                                 android:focusable="false"
                                 android:hint="DD/MM/YYYY"
                                 android:paddingHorizontal="12dp"
+                                android:textColor="@color/text_primary"
+                                android:textColorHint="@color/text_hint"
                                 android:textSize="14sp" />
                         </LinearLayout>
 
@@ -145,7 +152,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Given Date"
-                                android:textColor="@color/text_secondary"
+                                android:textColor="@color/text_primary"
                                 android:textSize="14sp" />
 
                             <EditText
@@ -158,6 +165,8 @@
                                 android:focusable="false"
                                 android:hint="DD/MM/YYYY"
                                 android:paddingHorizontal="12dp"
+                                android:textColor="@color/text_primary"
+                                android:textColorHint="@color/text_hint"
                                 android:textSize="14sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -167,7 +176,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="Batch Number"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp" />
 
                     <EditText
@@ -179,6 +188,8 @@
                         android:hint="Enter batch number"
                         android:inputType="text"
                         android:paddingHorizontal="12dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
                         android:textSize="14sp" />
 
                 </LinearLayout>
@@ -188,12 +199,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:background="@color/white"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/white"
                     android:orientation="vertical"
                     android:padding="16dp">
 
@@ -215,7 +229,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Side Effects (if any)"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp" />
 
                     <EditText
@@ -228,6 +242,8 @@
                         android:hint="Describe any side effects observed"
                         android:inputType="textMultiLine"
                         android:padding="12dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
                         android:textSize="14sp" />
 
                     <TextView
@@ -235,7 +251,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="Notes"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:textSize="14sp" />
 
                     <EditText
@@ -248,6 +264,8 @@
                         android:hint="Additional notes"
                         android:inputType="textMultiLine"
                         android:padding="12dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_hint"
                         android:textSize="14sp" />
 
                 </LinearLayout>

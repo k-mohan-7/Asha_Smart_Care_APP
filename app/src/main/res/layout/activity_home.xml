@@ -130,10 +130,14 @@
 
                         <!-- Visits Today -->
                         <androidx.cardview.widget.CardView
+                            android:id="@+id/card_visits_stat"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_margin="6dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground"
                             app:cardCornerRadius="12dp"
                             app:cardBackgroundColor="#2196F3"
                             app:cardElevation="2dp">
@@ -169,10 +173,14 @@
 
                         <!-- High Risk -->
                         <androidx.cardview.widget.CardView
+                            android:id="@+id/card_high_risk_stat"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_margin="6dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground"
                             app:cardCornerRadius="12dp"
                             app:cardBackgroundColor="#2196F3"
                             app:cardElevation="2dp">
@@ -198,45 +206,6 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="4dp"
                                     android:text="High Risk"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="12sp"
-                                    android:alpha="0.9" />
-
-                            </LinearLayout>
-
-                        </androidx.cardview.widget.CardView>
-
-                        <!-- Pending Sync -->
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_margin="6dp"
-                            app:cardCornerRadius="12dp"
-                            app:cardBackgroundColor="#2196F3"
-                            app:cardElevation="2dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:padding="16dp"
-                                android:gravity="center">
-
-                                <TextView
-                                    android:id="@+id/tv_pending_sync"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="3"
-                                    android:textColor="#FFFFFF"
-                                    android:textSize="28sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="4dp"
-                                    android:text="Pending Sync"
                                     android:textColor="#FFFFFF"
                                     android:textSize="12sp"
                                     android:alpha="0.9" />
@@ -389,7 +358,7 @@
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:layout_gravity="center"
-                                android:src="@drawable/ic_injection"
+                                android:src="@drawable/ic_syringe_shield"
                                 app:tint="#9C27B0" />
 
                         </androidx.cardview.widget.CardView>
@@ -438,7 +407,7 @@
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:layout_gravity="center"
-                                android:src="@drawable/ic_brain"
+                                android:src="@drawable/ic_sparkles"
                                 app:tint="#7C3AED" />
 
                         </androidx.cardview.widget.CardView>

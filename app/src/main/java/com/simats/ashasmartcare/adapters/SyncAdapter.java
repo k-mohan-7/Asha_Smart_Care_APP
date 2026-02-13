@@ -55,7 +55,7 @@ public class SyncAdapter extends RecyclerView.Adapter<SyncAdapter.ViewHolder> {
         // Set status
         String status = record.getSyncStatus();
         holder.tvStatus.setText(status);
-        
+
         switch (status) {
             case "PENDING":
                 holder.tvStatus.setTextColor(ContextCompat.getColor(context, R.color.warning));
@@ -85,7 +85,8 @@ public class SyncAdapter extends RecyclerView.Adapter<SyncAdapter.ViewHolder> {
     }
 
     private String formatTableName(String tableName) {
-        if (tableName == null) return "Unknown";
+        if (tableName == null)
+            return "Unknown";
         switch (tableName) {
             case "patients":
                 return "Patient";

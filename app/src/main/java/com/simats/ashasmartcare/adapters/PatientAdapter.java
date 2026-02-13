@@ -101,7 +101,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
             tvPhone.setText(patient.getPhone());
 
             // Set village
-            tvVillage.setText(patient.getVillage());
+            tvVillage.setText(patient.getAddress());
 
             // Set category with color
             String category = patient.getCategory();

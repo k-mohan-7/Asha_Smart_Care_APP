@@ -37,7 +37,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Button btnRegister;
     private TextView tvLogin;
     private ProgressBar progressBar;
-    
+
     private boolean isPasswordVisible = false;
     private boolean isConfirmPasswordVisible = false;
 
@@ -72,6 +72,67 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btn_register);
         tvLogin = findViewById(R.id.tv_login);
         progressBar = findViewById(R.id.progress_bar);
+
+        // Restrict name input to alphabets and spaces only
+        etName.setFilters(new android.text.InputFilter[] {
+                (source, start, end, dest, dstart, dend) -> {
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isLetter(source.charAt(i)) && !Character.isSpaceChar(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+        });
+
+        // Point 1: Restrict village input to alphabets only
+        etVillage.setFilters(new android.text.InputFilter[] {
+                (source, start, end, dest, dstart, dend) -> {
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isLetter(source.charAt(i)) && !Character.isSpaceChar(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+        });
+
+        // Point 2: Restrict phone input to 10 digits only
+        etPhone.setFilters(new android.text.InputFilter[] {
+                new android.text.InputFilter.LengthFilter(10),
+                (source, start, end, dest, dstart, dend) -> {
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isDigit(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+        });
+
+        // Point 5: Restrict worker ID to alphabets and numerical values only
+        etWorkerId.setFilters(new android.text.InputFilter[] {
+                (source, start, end, dest, dstart, dend) -> {
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isLetterOrDigit(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+        });
+
+        // Point 6: Restrict PHC / Block Name to alphabets and numerical values only
+        etPhc.setFilters(new android.text.InputFilter[] {
+                (source, start, end, dest, dstart, dend) -> {
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isLetterOrDigit(source.charAt(i)) && !Character.isSpaceChar(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+        });
     }
 
     private void initHelpers() {
@@ -116,6 +177,28 @@ public class RegisterActivity extends AppCompatActivity {
                 etConfirmPassword.setSelection(etConfirmPassword.getText().length());
             });
         }
+
+        // Point 4: Immediate confirm password match check
+        etConfirmPassword.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                String pass = etPassword.getText().toString();
+                String confirmPass = s.toString();
+                if (!confirmPass.isEmpty() && !confirmPass.equals(pass)) {
+                    etConfirmPassword.setError("Passwords do not match");
+                } else {
+                    etConfirmPassword.setError(null);
+                }
+            }
+        });
     }
 
     private void validateAndRegister() {
@@ -170,8 +253,9 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        if (password.length() < 4) {
-            etPassword.setError("Password must be at least 4 characters");
+        // Point 3: Password Complexity Validation
+        if (!isPasswordValid(password)) {
+            etPassword.setError("Password must be 8+ characters with uppercase, lowercase, digit, and special character");
             etPassword.requestFocus();
             return;
         }
@@ -192,7 +276,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void performRegistration(String name, String email, String phone, String password,
-                                     String workerId, String state, String district, String area) {
+            String workerId, String state, String district, String area) {
         showLoading(true);
 
         // Always save locally first
@@ -216,7 +300,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerOnline(String name, String email, String phone, String password,
-                               String workerId, String state, String district, String area, long localId) {
+            String workerId, String state, String district, String area, long localId) {
         apiHelper.register(name, email, phone, password, workerId, state, district, area,
                 new ApiHelper.ApiCallback() {
                     @Override
@@ -225,8 +309,17 @@ public class RegisterActivity extends AppCompatActivity {
                         try {
                             boolean success = response.getBoolean("success");
                             if (success) {
-                                Toast.makeText(RegisterActivity.this, "Account created successfully!", Toast.LENGTH_SHORT).show();
-                                navigateToLogin();
+                                // Get user info from response
+                                String registeredPhone = phone;
+                                String registeredName = name;
+
+                                // Navigate to Pending Approval page instead of login
+                                Intent intent = new Intent(RegisterActivity.this, PendingApprovalActivity.class);
+                                intent.putExtra("phone", registeredPhone);
+                                intent.putExtra("name", registeredName);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
                             } else {
                                 String message = response.optString("message", "Registration failed");
                                 Toast.makeText(RegisterActivity.this, message, Toast.LENGTH_SHORT).show();
@@ -240,8 +333,9 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onError(String errorMessage) {
                         showLoading(false);
-                        Toast.makeText(RegisterActivity.this, 
-                                "Account saved locally. Online sync failed: " + errorMessage, 
+                        Toast.makeText(RegisterActivity.this,
+                                "Account saved locally. Online sync failed to " + sessionManager.getApiBaseUrl() + "\n"
+                                        + errorMessage,
                                 Toast.LENGTH_LONG).show();
                         navigateToLogin();
                     }
@@ -256,5 +350,29 @@ public class RegisterActivity extends AppCompatActivity {
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnRegister.setEnabled(!show);
+    }
+
+    private boolean isPasswordValid(String password) {
+        if (password.length() < 8)
+            return false;
+
+        boolean hasUpper = false;
+        boolean hasLower = false;
+        boolean hasDigit = false;
+        boolean hasSpecial = false;
+        String specialChars = "!@#$%^&*()-_=+[]{}|;:',.<>?/";
+
+        for (char c : password.toCharArray()) {
+            if (Character.isUpperCase(c))
+                hasUpper = true;
+            else if (Character.isLowerCase(c))
+                hasLower = true;
+            else if (Character.isDigit(c))
+                hasDigit = true;
+            else if (specialChars.contains(String.valueOf(c)))
+                hasSpecial = true;
+        }
+
+        return hasUpper && hasLower && hasDigit && hasSpecial;
     }
 }

@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="#F5F5F5">
+
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_above="@id/bottom_navigation"
     android:fillViewport="true">
 
     <LinearLayout
@@ -113,7 +118,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:background="#FFFFFF">
 
                 <!-- Section Header -->
                 <LinearLayout
@@ -240,7 +246,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:background="#FFFFFF">
 
                 <!-- Section Header -->
                 <LinearLayout
@@ -299,51 +306,6 @@
                         app:tint="@color/text_hint" />
                 </LinearLayout>
 
-                <!-- Email Address -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="EMAIL ADDRESS"
-                    android:textColor="@color/text_hint"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/tvEmail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="16dp"
-                    android:text="sunita.sharma@health.gov.in"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <!-- Emergency Contact -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="EMERGENCY CONTACT"
-                    android:textColor="@color/text_hint"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/tvEmergencyName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Ramesh Sharma (Husband)"
-                    android:textColor="@color/text_primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvEmergencyPhone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="+91 98765 00000"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -360,7 +322,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:background="#FFFFFF">
 
                 <!-- Section Header -->
                 <LinearLayout
@@ -419,11 +382,11 @@
                         app:tint="@color/text_hint" />
                 </LinearLayout>
 
-                <!-- Households Covered -->
+                <!-- Patients Managed -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="HOUSEHOLDS COVERED"
+                    android:text="PATIENTS MANAGED"
                     android:textColor="@color/text_hint"
                     android:textSize="11sp" />
 
@@ -431,16 +394,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="16dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/tvHouseholds"
+                        android:id="@+id/tvPatientsManaged"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="150 Families"
+                        android:text="0 Patients"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -448,43 +410,10 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_home"
+                        android:src="@drawable/ic_people"
                         app:tint="@color/text_hint" />
                 </LinearLayout>
 
-                <!-- Reporting Supervisor -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="REPORTING SUPERVISOR"
-                    android:textColor="@color/text_hint"
-                    android:textSize="11sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvSupervisor"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Dr. Amit Verma (MO)"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/ivSupervisor"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_person"
-                        app:civ_border_color="#E0E0E0"
-                        app:civ_border_width="1dp" />
-                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -503,7 +432,7 @@
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:background="@android:color/transparent"
+                android:background="#FFFFFF"
                 android:drawableStart="@drawable/ic_logout"
                 android:drawablePadding="8dp"
                 android:gravity="center"
@@ -525,3 +454,18 @@
             android:textSize="12sp" />
     </LinearLayout>
 </ScrollView>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        app:elevation="8dp"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
+
+</RelativeLayout>

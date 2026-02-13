@@ -33,7 +33,10 @@ import java.util.Map;
 public class ApiHelper {
 
     private static final String TAG = "ApiHelper";
-    private static final int TIMEOUT_MS = 30000; // 30 seconds
+    private static final int TIMEOUT_MS = 20000; // 20 seconds for general requests
+    private static final int LOGIN_TIMEOUT_MS = 8000; // 8 seconds for login
+    private static final int MAX_RETRIES = 2; // Retry failed requests 2 times
+    private static final float BACKOFF_MULT = 2.0f; // Exponential backoff multiplier
 
     private static ApiHelper instance;
     private RequestQueue requestQueue;
@@ -42,6 +45,7 @@ public class ApiHelper {
 
     public interface ApiCallback {
         void onSuccess(JSONObject response);
+
         void onError(String errorMessage);
     }
 
@@ -69,14 +73,14 @@ public class ApiHelper {
         String url = getBaseUrl() + Constants.API_PATIENTS + "?asha_id=" + ashaId;
         makeGetRequest(Constants.API_PATIENTS + "?asha_id=" + ashaId, callback);
     }
-    
+
     /**
      * Get pregnancy visits for a patient
      */
     public void getPregnancyVisits(int serverId, ApiCallback callback) {
         makeGetRequest(Constants.API_PREGNANCY_VISITS + "?patient_id=" + serverId, callback);
     }
-    
+
     /**
      * Update pregnancy visit
      */
@@ -107,13 +111,13 @@ public class ApiHelper {
 
         makePostRequest(url, params, callback);
     }
-    
+
     /**
      * Delete patient
      */
     public void deletePatient(int serverId, ApiCallback callback) {
         String url = getBaseUrl() + Constants.API_PATIENTS + "?id=" + serverId;
-        
+
         JSONObject params = new JSONObject();
         try {
             params.put("_method", "DELETE");
@@ -122,7 +126,7 @@ public class ApiHelper {
             callback.onError("Error creating request");
             return;
         }
-        
+
         makePostRequest(url, params, callback);
     }
 
@@ -142,14 +146,84 @@ public class ApiHelper {
             return;
         }
 
-        makePostRequest(url, params, callback);
+        // Use custom request with shorter timeout for login
+        Log.d(TAG, "=== LOGIN REQUEST ===" );
+        Log.d(TAG, "URL: " + url);
+        Log.d(TAG, "Params: " + params.toString());
+
+        StringRequest request = new StringRequest(
+                Request.Method.POST,
+                url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d(TAG, "=== LOGIN RESPONSE ===" );
+                        Log.d(TAG, "Raw Response Length: " + response.length());
+                        Log.d(TAG, "Raw Response: " + response.substring(0, Math.min(response.length(), 500)));
+                        
+                        // Check if response looks like JSON
+                        String trimmed = response.trim();
+                        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+                            Log.e(TAG, "Response is not JSON! Starts with: " + trimmed.substring(0, Math.min(50, trimmed.length())));
+                            callback.onError("Server returned non-JSON response. Check auth.php file.");
+                            return;
+                        }
+                        
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response);
+                            Log.d(TAG, "JSON parsed successfully");
+                            callback.onSuccess(jsonResponse);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "JSON Parse Error: " + e.getMessage());
+                            Log.e(TAG, "Failed Response: " + response);
+                            callback.onError("Invalid JSON format: " + e.getMessage());
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "=== LOGIN ERROR ===");
+                        String errorMessage = getErrorMessage(error);
+                        Log.e(TAG, "Error Message: " + errorMessage);
+                        if (error.networkResponse != null) {
+                            Log.e(TAG, "Status Code: " + error.networkResponse.statusCode);
+                            if (error.networkResponse.data != null) {
+                                String responseBody = new String(error.networkResponse.data);
+                                Log.e(TAG, "Error Response Body: " + responseBody.substring(0, Math.min(500, responseBody.length())));
+                            }
+                        }
+                        callback.onError(errorMessage);
+                    }
+                }) {
+            @Override
+            public byte[] getBody() {
+                return params.toString().getBytes();
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                Log.d(TAG, "Headers: " + headers.toString());
+                return headers;
+            }
+        };
+
+        // Set short timeout for login
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                LOGIN_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        requestQueue.add(request);
     }
 
     /**
      * Register new user
      */
     public void register(String name, String email, String phone, String password,
-                        String workerId, String state, String district, String area, ApiCallback callback) {
+            String workerId, String state, String district, String area, ApiCallback callback) {
         String url = getBaseUrl() + Constants.API_REGISTER;
 
         JSONObject params = new JSONObject();
@@ -172,6 +246,34 @@ public class ApiHelper {
     }
 
     /**
+     * Register worker created by admin (approved immediately)
+     */
+    public void registerAdminCreatedWorker(String name, String phone, String password,
+            String workerId, String village, String phc, ApiCallback callback) {
+        String url = getBaseUrl() + Constants.API_REGISTER;
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("action", "register");
+            params.put("name", name);
+            params.put("phone", phone);
+            params.put("password", password);
+            params.put("worker_id", workerId);
+            params.put("village", village);
+            params.put("area", phc);
+            params.put("role", "admin"); // Mark as admin-created to auto-approve
+            params.put("email", ""); // Optional fields
+            params.put("state", "");
+            params.put("district", "");
+        } catch (JSONException e) {
+            callback.onError("Error creating request");
+            return;
+        }
+
+        makePostRequest(url, params, callback);
+    }
+
+    /**
      * Add new patient/person
      */
     public void addPatient(Patient patient, ApiCallback callback) {
@@ -185,9 +287,8 @@ public class ApiHelper {
             params.put("dob", patient.getDob());
             params.put("gender", patient.getGender());
             params.put("phone", patient.getPhone());
-            params.put("state", patient.getState());
-            params.put("district", patient.getDistrict());
-            params.put("area", patient.getArea());
+            params.put("address", patient.getAddress());
+            params.put("blood_group", patient.getBloodGroup());
             params.put("category", patient.getCategory());
             params.put("medical_notes", patient.getMedicalNotes());
         } catch (JSONException e) {
@@ -213,9 +314,8 @@ public class ApiHelper {
             params.put("dob", patient.getDob());
             params.put("gender", patient.getGender());
             params.put("phone", patient.getPhone());
-            params.put("state", patient.getState());
-            params.put("district", patient.getDistrict());
-            params.put("area", patient.getArea());
+            params.put("address", patient.getAddress());
+            params.put("blood_group", patient.getBloodGroup());
             params.put("category", patient.getCategory());
             params.put("medical_notes", patient.getMedicalNotes());
         } catch (JSONException e) {
@@ -374,8 +474,7 @@ public class ApiHelper {
                         Log.e(TAG, "Error: " + errorMessage);
                         callback.onError(errorMessage);
                     }
-                }
-        ) {
+                }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> headers = new HashMap<>();
@@ -387,8 +486,7 @@ public class ApiHelper {
         request.setRetryPolicy(new DefaultRetryPolicy(
                 TIMEOUT_MS,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-        ));
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         requestQueue.add(request);
     }
@@ -397,42 +495,73 @@ public class ApiHelper {
      * Generic POST request
      */
     private void makePostRequest(String url, JSONObject params, ApiCallback callback) {
-        Log.d(TAG, "POST Request: " + url);
+        Log.d(TAG, "=== POST REQUEST ===");
+        Log.d(TAG, "URL: " + url);
         Log.d(TAG, "Params: " + params.toString());
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        StringRequest request = new StringRequest(
                 Request.Method.POST,
                 url,
-                params,
-                new Response.Listener<JSONObject>() {
+                new Response.Listener<String>() {
                     @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d(TAG, "Response: " + response.toString());
-                        callback.onSuccess(response);
+                    public void onResponse(String response) {
+                        Log.d(TAG, "=== POST RESPONSE ===");
+                        Log.d(TAG, "Raw Response Length: " + response.length());
+                        Log.d(TAG, "Raw Response: " + response.substring(0, Math.min(response.length(), 500)));
+                        
+                        // Check if response looks like JSON
+                        String trimmed = response.trim();
+                        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+                            Log.e(TAG, "Response is not JSON! Starts with: " + trimmed.substring(0, Math.min(50, trimmed.length())));
+                            callback.onError("Server returned non-JSON response. Check backend PHP files.");
+                            return;
+                        }
+                        
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response);
+                            Log.d(TAG, "JSON parsed successfully");
+                            callback.onSuccess(jsonResponse);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "JSON Parse Error: " + e.getMessage());
+                            Log.e(TAG, "Failed Response: " + response);
+                            callback.onError("Invalid JSON format: " + e.getMessage());
+                        }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "=== POST ERROR ===");
                         String errorMessage = getErrorMessage(error);
-                        Log.e(TAG, "Error: " + errorMessage);
+                        Log.e(TAG, "Error Message: " + errorMessage);
+                        if (error.networkResponse != null) {
+                            Log.e(TAG, "Status Code: " + error.networkResponse.statusCode);
+                            if (error.networkResponse.data != null) {
+                                String responseBody = new String(error.networkResponse.data);
+                                Log.e(TAG, "Error Response Body: " + responseBody.substring(0, Math.min(500, responseBody.length())));
+                            }
+                        }
                         callback.onError(errorMessage);
                     }
-                }
-        ) {
+                }) {
+            @Override
+            public byte[] getBody() {
+                return params.toString().getBytes();
+            }
+
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
+                Log.d(TAG, "Headers: " + headers.toString());
                 return headers;
             }
         };
 
         request.setRetryPolicy(new DefaultRetryPolicy(
                 TIMEOUT_MS,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-        ));
+                MAX_RETRIES,
+                BACKOFF_MULT));
 
         requestQueue.add(request);
     }
@@ -442,34 +571,61 @@ public class ApiHelper {
      */
     public void makeGetRequest(String endpoint, ApiCallback callback) {
         String url = getBaseUrl() + endpoint;
-        Log.d(TAG, "GET Request: " + url);
+        Log.d(TAG, "=== GET REQUEST ===");
+        Log.d(TAG, "URL: " + url);
+        Log.d(TAG, "Endpoint: " + endpoint);
+        Log.d(TAG, "Base URL: " + getBaseUrl());
 
-        JsonObjectRequest request = new JsonObjectRequest(
+        StringRequest request = new StringRequest(
                 Request.Method.GET,
                 url,
-                null,
-                new Response.Listener<JSONObject>() {
+                new Response.Listener<String>() {
                     @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d(TAG, "Response: " + response.toString());
-                        callback.onSuccess(response);
+                    public void onResponse(String response) {
+                        Log.d(TAG, "=== GET RESPONSE ===");
+                        Log.d(TAG, "Raw Response Length: " + response.length());
+                        Log.d(TAG, "Raw Response: " + response.substring(0, Math.min(response.length(), 500)));
+                        
+                        // Check if response looks like JSON
+                        String trimmed = response.trim();
+                        if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+                            Log.e(TAG, "Response is not JSON! Starts with: " + trimmed.substring(0, Math.min(50, trimmed.length())));
+                            callback.onError("Server returned non-JSON response. Check backend PHP files.");
+                            return;
+                        }
+                        
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response);
+                            Log.d(TAG, "JSON parsed successfully");
+                            callback.onSuccess(jsonResponse);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "JSON Parse Error: " + e.getMessage());
+                            Log.e(TAG, "Failed Response: " + response);
+                            callback.onError("Invalid JSON format: " + e.getMessage());
+                        }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "=== GET ERROR ===");
                         String errorMessage = getErrorMessage(error);
-                        Log.e(TAG, "Error: " + errorMessage);
+                        Log.e(TAG, "Error Message: " + errorMessage);
+                        if (error.networkResponse != null) {
+                            Log.e(TAG, "Status Code: " + error.networkResponse.statusCode);
+                            if (error.networkResponse.data != null) {
+                                String responseBody = new String(error.networkResponse.data);
+                                Log.e(TAG, "Error Response Body: " + responseBody.substring(0, Math.min(500, responseBody.length())));
+                            }
+                        }
                         callback.onError(errorMessage);
                     }
-                }
-        );
+                });
 
         request.setRetryPolicy(new DefaultRetryPolicy(
                 TIMEOUT_MS,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-        ));
+                MAX_RETRIES,
+                BACKOFF_MULT));
 
         requestQueue.add(request);
     }
@@ -480,31 +636,68 @@ public class ApiHelper {
     private String getErrorMessage(VolleyError error) {
         if (error.networkResponse != null) {
             int statusCode = error.networkResponse.statusCode;
+            
+            // Try to parse error response body for detailed message
+            if (error.networkResponse.data != null) {
+                try {
+                    String responseBody = new String(error.networkResponse.data);
+                    JSONObject jsonError = new JSONObject(responseBody);
+                    
+                    // Check if there's a message field in the error response
+                    if (jsonError.has("message")) {
+                        String message = jsonError.getString("message");
+                        if (message != null && !message.isEmpty()) {
+                            return message;
+                        }
+                    }
+                } catch (Exception e) {
+                    // If parsing fails, fall back to default messages
+                    Log.d(TAG, "Could not parse error response body: " + e.getMessage());
+                }
+            }
+            
+            // Default error messages if no custom message found
             switch (statusCode) {
                 case 400:
-                    return "Bad Request";
+                    return "Bad Request - Invalid data sent";
                 case 401:
-                    return "Unauthorized";
+                    return "Unauthorized - Please login again";
                 case 403:
-                    return "Forbidden";
+                    return "Forbidden - Access denied";
                 case 404:
-                    return "Not Found";
+                    return "Not Found - Server endpoint not available";
                 case 500:
-                    return "Server Error";
+                    return "Server Error - Please try again later";
+                case 502:
+                    return "Bad Gateway - Server unavailable";
+                case 503:
+                    return "Service Unavailable - Please try again";
                 default:
-                    return "Network Error (" + statusCode + ")";
+                    return "Network Error (Code: " + statusCode + ")";
             }
         }
 
         if (error instanceof com.android.volley.TimeoutError) {
-            return "Request Timeout";
+            return "Connection timeout - Server not responding. Check your internet connection.";
         }
 
         if (error instanceof com.android.volley.NoConnectionError) {
-            return "No Internet Connection";
+            return "No internet connection - Please check your network settings";
+        }
+        
+        if (error instanceof com.android.volley.NetworkError) {
+            return "Network error - Unable to reach server. Please check if backend is running.";
+        }
+        
+        if (error instanceof com.android.volley.ParseError) {
+            return "Server response error - Invalid data format";
+        }
+        
+        if (error instanceof com.android.volley.ServerError) {
+            return "Server error - Please try again later";
         }
 
-        return "Network Error";
+        return "Unknown error - " + (error.getMessage() != null ? error.getMessage() : "Please try again");
     }
 
     /**

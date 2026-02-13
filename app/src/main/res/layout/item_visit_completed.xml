@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:background="#FFFFFF"
         android:padding="16dp"
         android:gravity="center_vertical">
 
@@ -47,7 +48,7 @@
             android:layout_height="wrap_content"
             android:text="Upcoming"
             android:textColor="#6B7280"
-            android:background="@drawable/bg_gray_light"
+            android:background="#F3F4F6"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"/>
 

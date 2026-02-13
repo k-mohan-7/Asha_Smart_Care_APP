@@ -15,9 +15,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.simats.ashasmartcare.activities.BaseActivity;
 import com.simats.ashasmartcare.adapters.VisitHistoryAdapter;
 import com.simats.ashasmartcare.database.DatabaseHelper;
 import com.simats.ashasmartcare.models.Visit;
+import com.simats.ashasmartcare.network.ApiHelper;
+import com.simats.ashasmartcare.utils.NetworkUtils;
+import com.simats.ashasmartcare.utils.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,10 +34,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class VisitHistoryActivity extends AppCompatActivity implements VisitHistoryAdapter.OnVisitClickListener {
+public class VisitHistoryActivity extends BaseActivity implements VisitHistoryAdapter.OnVisitClickListener {
 
-    private ImageView ivBack, ivFilter;
-    private EditText etSearch;
+    @Override
+    protected int getNavItemId() {
+        return R.id.nav_visits;
+    }
+
+    private ImageView ivBack;
     private RecyclerView recyclerToday, recyclerYesterday, recyclerOlder;
     private ProgressBar progressBar;
     private LinearLayout layoutEmpty, layoutTodaySection, layoutYesterdaySection, layoutOlderSection;
@@ -38,6 +50,8 @@ public class VisitHistoryActivity extends AppCompatActivity implements VisitHist
     private List<Visit> allVisits, todayVisits, yesterdayVisits, olderVisits;
 
     private DatabaseHelper dbHelper;
+    private ApiHelper apiHelper;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +66,6 @@ public class VisitHistoryActivity extends AppCompatActivity implements VisitHist
 
     private void initViews() {
         ivBack = findViewById(R.id.ivBack);
-        ivFilter = findViewById(R.id.ivFilter);
-        etSearch = findViewById(R.id.etSearch);
         recyclerToday = findViewById(R.id.recyclerToday);
         recyclerYesterday = findViewById(R.id.recyclerYesterday);
         recyclerOlder = findViewById(R.id.recyclerOlder);
@@ -64,6 +76,8 @@ public class VisitHistoryActivity extends AppCompatActivity implements VisitHist
         layoutOlderSection = findViewById(R.id.layoutOlderSection);
 
         dbHelper = DatabaseHelper.getInstance(this);
+        apiHelper = ApiHelper.getInstance(this);
+        sessionManager = SessionManager.getInstance(this);
         allVisits = new ArrayList<>();
         todayVisits = new ArrayList<>();
         yesterdayVisits = new ArrayList<>();
@@ -86,31 +100,74 @@ public class VisitHistoryActivity extends AppCompatActivity implements VisitHist
 
     private void setupListeners() {
         ivBack.setOnClickListener(v -> finish());
-
-        ivFilter.setOnClickListener(v -> 
-            Toast.makeText(this, "Filter functionality coming soon", Toast.LENGTH_SHORT).show()
-        );
-
-        etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterVisits(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
     }
 
     private void loadData() {
         showLoading(true);
-        allVisits.clear();
-        allVisits.addAll(dbHelper.getAllVisits());
-        categorizeVisits();
-        showLoading(false);
+
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            // ONLINE: Fetch from backend API
+            fetchVisitsFromBackend();
+        } else {
+            // OFFLINE: Show no internet message
+            showLoading(false);
+            Toast.makeText(this, "⚠️ No internet connection. Cannot load visits.", Toast.LENGTH_LONG).show();
+            allVisits.clear();
+            categorizeVisits();
+        }
+    }
+
+    private void fetchVisitsFromBackend() {
+        String ashaId = String.valueOf(sessionManager.getUserId());
+
+        apiHelper.makeGetRequest("visits.php?asha_id=" + ashaId, new ApiHelper.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    if (response.getBoolean("success")) {
+                        JSONArray visitsArray = response.getJSONArray("data");
+                        allVisits.clear();
+
+                        for (int i = 0; i < visitsArray.length(); i++) {
+                            JSONObject visitObj = visitsArray.getJSONObject(i);
+                            Visit visit = new Visit();
+                            visit.setServerId(visitObj.getInt("id"));
+                            visit.setPatientId(visitObj.getInt("patient_id"));
+                            visit.setVisitDate(visitObj.getString("visit_date"));
+                            visit.setVisitType(visitObj.optString("visit_type", "General"));
+                            visit.setDescription(visitObj.optString("description", ""));
+                            visit.setNotes(visitObj.optString("notes", ""));
+                            allVisits.add(visit);
+                        }
+
+                        runOnUiThread(() -> {
+                            categorizeVisits();
+                            showLoading(false);
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            Toast.makeText(VisitHistoryActivity.this, "Failed to load visits", Toast.LENGTH_SHORT)
+                                    .show();
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        Toast.makeText(VisitHistoryActivity.this, "Error parsing data", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    Toast.makeText(VisitHistoryActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     private void categorizeVisits() {
@@ -120,56 +177,14 @@ public class VisitHistoryActivity extends AppCompatActivity implements VisitHist
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String today = sdf.format(new Date());
-        
+
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, -1);
         String yesterday = sdf.format(cal.getTime());
 
         for (Visit visit : allVisits) {
             String visitDate = visit.getVisitDate().substring(0, 10); // Extract date part
-            
-            if (visitDate.equals(today)) {
-                todayVisits.add(visit);
-            } else if (visitDate.equals(yesterday)) {
-                yesterdayVisits.add(visit);
-            } else {
-                olderVisits.add(visit);
-            }
-        }
 
-        updateUI();
-    }
-
-    private void filterVisits(String query) {
-        if (query.isEmpty()) {
-            categorizeVisits();
-            return;
-        }
-
-        List<Visit> filtered = new ArrayList<>();
-        for (Visit visit : allVisits) {
-            String patientName = dbHelper.getPatientById(visit.getPatientId()).getName().toLowerCase();
-            String patientId = String.valueOf(visit.getPatientId());
-            
-            if (patientName.contains(query.toLowerCase()) || patientId.contains(query)) {
-                filtered.add(visit);
-            }
-        }
-
-        todayVisits.clear();
-        yesterdayVisits.clear();
-        olderVisits.clear();
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String today = sdf.format(new Date());
-        
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, -1);
-        String yesterday = sdf.format(cal.getTime());
-
-        for (Visit visit : filtered) {
-            String visitDate = visit.getVisitDate().substring(0, 10);
-            
             if (visitDate.equals(today)) {
                 todayVisits.add(visit);
             } else if (visitDate.equals(yesterday)) {

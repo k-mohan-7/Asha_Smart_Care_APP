@@ -1,0 +1,1991 @@
+﻿> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+
+> Task :app:compileDebugJavaWithJavac
+.\gradlew.bat : C:\Use
+rs\SSD\AndroidStudioPr
+ojects\ASHASmartCare\a
+pp\src\main\java\com\s
+imats\ashasmartcare\da
+tabase\DatabaseHelper.
+java:922: error: 
+constructor 
+SyncRecord in class 
+SyncRecord cannot be 
+applied to given 
+types;
+At line:1 char:1
++ .\gradlew.bat compil
+eDebugJavaWithJavac > 
+build_error_worker_syn
+c.log ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (C:\Users\S   
+ SD\An...to given     
+types;:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+                
+SyncRecord record = 
+new SyncRecord();
+                      
+              ^
+  required: String,Str
+ing,boolean,String
+  found:    no 
+arguments
+  reason: actual and 
+formal argument lists 
+differ in length
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:923: 
+error: cannot find 
+symbol
+                record
+.setLocalId(cursor.get
+Long(cursor.getColumnI
+ndexOrThrow(COL_LOCAL_
+ID)));
+                      
+^
+  symbol:   method 
+setLocalId(long)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:924: 
+error: cannot find 
+symbol
+                record
+.setTableName(cursor.g
+etString(cursor.getCol
+umnIndexOrThrow(COL_TA
+BLE_NAME)));
+                      
+^
+  symbol:   method 
+setTableName(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:925: 
+error: cannot find 
+symbol
+                record
+.setRecordId(cursor.ge
+tLong(cursor.getColumn
+IndexOrThrow(COL_RECOR
+D_ID)));
+                      
+^
+  symbol:   method 
+setRecordId(long)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:926: 
+error: cannot find 
+symbol
+                record
+.setAction(cursor.getS
+tring(cursor.getColumn
+IndexOrThrow(COL_ACTIO
+N)));
+                      
+^
+  symbol:   method 
+setAction(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:927: 
+error: cannot find 
+symbol
+                record
+.setDataJson(cursor.ge
+tString(cursor.getColu
+mnIndexOrThrow(COL_DAT
+A_JSON)));
+                      
+^
+  symbol:   method 
+setDataJson(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:928: 
+error: cannot find 
+symbol
+                record
+.setSyncStatus(cursor.
+getString(cursor.getCo
+lumnIndexOrThrow(COL_S
+YNC_STATUS)));
+                      
+^
+  symbol:   method 
+setSyncStatus(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:929: 
+error: cannot find 
+symbol
+                record
+.setErrorMessage(curso
+r.getString(cursor.get
+ColumnIndexOrThrow(COL
+_ERROR_MESSAGE)));
+                      
+^
+  symbol:   method set
+ErrorMessage(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:930: 
+error: cannot find 
+symbol
+                record
+.setRetryCount(cursor.
+getInt(cursor.getColum
+nIndexOrThrow(COL_RETR
+Y_COUNT)));
+                      
+^
+  symbol:   method 
+setRetryCount(int)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:985: 
+error: constructor 
+SyncRecord in class 
+SyncRecord cannot be 
+applied to given 
+types;
+                
+SyncRecord record = 
+new SyncRecord();
+                      
+              ^
+  required: String,Str
+ing,boolean,String
+  found:    no 
+arguments
+  reason: actual and 
+formal argument lists 
+differ in length
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:986: 
+error: cannot find 
+symbol
+                record
+.setLocalId(cursor.get
+Long(cursor.getColumnI
+ndexOrThrow(COL_LOCAL_
+ID)));
+                      
+^
+  symbol:   method 
+setLocalId(long)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:987: 
+error: cannot find 
+symbol
+                record
+.setTableName(cursor.g
+etString(cursor.getCol
+umnIndexOrThrow(COL_TA
+BLE_NAME)));
+                      
+^
+  symbol:   method 
+setTableName(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:988: 
+error: cannot find 
+symbol
+                record
+.setRecordId(cursor.ge
+tLong(cursor.getColumn
+IndexOrThrow(COL_RECOR
+D_ID)));
+                      
+^
+  symbol:   method 
+setRecordId(long)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:989: 
+error: cannot find 
+symbol
+                record
+.setAction(cursor.getS
+tring(cursor.getColumn
+IndexOrThrow(COL_ACTIO
+N)));
+                      
+^
+  symbol:   method 
+setAction(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:990: 
+error: cannot find 
+symbol
+                record
+.setDataJson(cursor.ge
+tString(cursor.getColu
+mnIndexOrThrow(COL_DAT
+A_JSON)));
+                      
+^
+  symbol:   method 
+setDataJson(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:991: 
+error: cannot find 
+symbol
+                record
+.setSyncStatus(cursor.
+getString(cursor.getCo
+lumnIndexOrThrow(COL_S
+YNC_STATUS)));
+                      
+^
+  symbol:   method 
+setSyncStatus(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:992: 
+error: cannot find 
+symbol
+                record
+.setErrorMessage(curso
+r.getString(cursor.get
+ColumnIndexOrThrow(COL
+_ERROR_MESSAGE)));
+                      
+^
+  symbol:   method set
+ErrorMessage(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:993: 
+error: cannot find 
+symbol
+                record
+.setRetryCount(cursor.
+getInt(cursor.getColum
+nIndexOrThrow(COL_RETR
+Y_COUNT)));
+                      
+^
+  symbol:   method 
+setRetryCount(int)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1007: 
+error: cannot find 
+symbol
+        values.put(COL
+_SYNC_STATUS, record.g
+etSyncStatus());
+                      
+                    ^
+  symbol:   method 
+getSyncStatus()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1008: 
+error: cannot find 
+symbol
+        values.put(COL
+_ERROR_MESSAGE, record
+.getErrorMessage());
+                      
+                      
+^
+  symbol:   method 
+getErrorMessage()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1009: 
+error: cannot find 
+symbol
+        values.put(COL
+_RETRY_COUNT, record.g
+etRetryCount());
+                      
+                    ^
+  symbol:   method 
+getRetryCount()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\database\DatabaseH
+elper.java:1013: 
+error: cannot find 
+symbol
+                new 
+String[] { String.valu
+eOf(record.getLocalId(
+)) });
+                      
+                      
+        ^
+  symbol:   method 
+getLocalId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:44: error: 
+cannot find symbol
+        holder.tvTable
+Name.setText(formatTab
+leName(record.getTable
+Name()));
+                      
+                      
+             ^
+  symbol:   method 
+getTableName()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:45: error: 
+cannot find symbol
+        holder.tvRecor
+dId.setText("ID: " + 
+record.getRecordId());
+                      
+                      
+     ^
+  symbol:   method 
+getRecordId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:49: error: 
+cannot find symbol
+            Date date 
+= new Date(record.getC
+reatedAt());
+                      
+                 ^
+  symbol:   method 
+getCreatedAt()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:56: error: 
+cannot find symbol
+        String status 
+= record.getSyncStatus
+();
+                      
+        ^
+  symbol:   method 
+getSyncStatus()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:78: error: 
+cannot find symbol
+        String error 
+= record.getErrorMessa
+ge();
+                      
+       ^
+  symbol:   method 
+getErrorMessage()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:116: error: 
+cannot find symbol
+            
+ivStatusIcon = itemVie
+w.findViewById(R.id.iv
+StatusIcon);
+                      
+                      
+         ^
+  symbol:   variable 
+ivStatusIcon
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:117: error: 
+cannot find symbol
+            
+tvTableName = itemView
+.findViewById(R.id.tvT
+ableName);
+                      
+                      
+        ^
+  symbol:   variable 
+tvTableName
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:118: error: 
+cannot find symbol
+            
+tvRecordId = itemView.
+findViewById(R.id.tvRe
+cordId);
+                      
+                      
+       ^
+  symbol:   variable 
+tvRecordId
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:120: error: 
+cannot find symbol
+            tvStatus 
+= itemView.findViewByI
+d(R.id.tvStatus);
+                      
+                      
+     ^
+  symbol:   variable 
+tvStatus
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncAdapt
+er.java:121: error: 
+cannot find symbol
+            tvError = 
+itemView.findViewById(
+R.id.tvError);
+                      
+                      
+    ^
+  symbol:   variable 
+tvError
+  location: class id
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncPendi
+ngAdapter.java:42: 
+error: cannot find 
+symbol
+        String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+           ^
+  symbol:   method 
+getTableName()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncPendi
+ngAdapter.java:42: 
+error: cannot find 
+symbol
+        String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+                      
+                      
+               ^
+  symbol:   method 
+getTableName()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncPendi
+ngAdapter.java:44: 
+error: cannot find 
+symbol
+        holder.tvType.
+setText("Record ID: " 
++ 
+record.getRecordId());
+                      
+                      
+        ^
+  symbol:   method 
+getRecordId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncPendi
+ngAdapter.java:45: 
+error: cannot find 
+symbol
+        holder.tvTimes
+tamp.setText(getTimeAg
+o(record.getCreatedAt(
+)));
+                      
+                      
+        ^
+  symbol:   method 
+getCreatedAt()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncSynce
+dAdapter.java:42: 
+error: cannot find 
+symbol
+        String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+           ^
+  symbol:   method 
+getTableName()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncSynce
+dAdapter.java:42: 
+error: cannot find 
+symbol
+        String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+                      
+                      
+               ^
+  symbol:   method 
+getTableName()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\adapters\SyncSynce
+dAdapter.java:44: 
+error: cannot find 
+symbol
+        holder.tvTimes
+tamp.setText(getTimeAg
+o(record.getCreatedAt(
+)));
+                      
+                      
+        ^
+  symbol:   method 
+getCreatedAt()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:92: error: 
+cannot find symbol
+            String 
+tableName = 
+record.getTableName();
+                      
+               ^
+  symbol:   method 
+getTableName()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:93: error: 
+cannot find symbol
+            long 
+recordId = 
+record.getRecordId();
+                      
+            ^
+  symbol:   method 
+getRecordId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:121: error: 
+cannot find symbol
+            dbHelper.d
+eleteSyncRecord(record
+.getId());
+                      
+                      
+^
+  symbol:   method 
+getId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:171: error: 
+cannot find symbol
+            dbHelper.d
+eleteSyncRecord(record
+.getId());
+                      
+                      
+^
+  symbol:   method 
+getId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:220: error: 
+cannot find symbol
+            dbHelper.d
+eleteSyncRecord(record
+.getId());
+                      
+                      
+^
+  symbol:   method 
+getId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:267: error: 
+cannot find symbol
+            dbHelper.d
+eleteSyncRecord(record
+.getId());
+                      
+                      
+^
+  symbol:   method 
+getId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:312: error: 
+cannot find symbol
+            dbHelper.d
+eleteSyncRecord(record
+.getId());
+                      
+                      
+^
+  symbol:   method 
+getId()
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:355: error: 
+cannot find symbol
+        record.setSync
+Status(status);
+              ^
+  symbol:   method 
+setSyncStatus(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:356: error: 
+cannot find symbol
+        record.setErro
+rMessage(errorMessage)
+;
+              ^
+  symbol:   method set
+ErrorMessage(String)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:357: error: 
+cannot find symbol
+        record.setLast
+SyncAttempt(System.cur
+rentTimeMillis());
+              ^
+  symbol:   method set
+LastSyncAttempt(long)
+  location: variable 
+record of type 
+SyncRecord
+C:\Users\SSD\AndroidSt
+udioProjects\ASHASmart
+Care\app\src\main\java
+\com\simats\ashasmartc
+are\services\SyncServi
+ce.java:359: error: 
+cannot find symbol
+        Log.d(TAG, 
+"Updated sync record 
+" + record.getId() + 
+" to status: " + 
+status);
+                      
+                      
+      ^
+  symbol:   method 
+getId()
+  location: variable 
+record of type 
+SyncRecord
+Note: Some input 
+files use or override 
+a deprecated API.
+Note: Recompile with 
+-Xlint:deprecation 
+for details.
+50 errors
+
+> Task :app:compileDebugJavaWithJavac FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/SSD/AndroidStudioProjects/ASHASmartCare/build/reports/problems/problems-report.html
+
+FAILURE: Build failed 
+with an exception.
+
+* What went wrong:
+Execution failed for 
+task ':app:compileDebu
+gJavaWithJavac'.
+> Compilation failed; 
+see the compiler 
+output below.
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:922: 
+error: constructor 
+SyncRecord in class 
+SyncRecord cannot be 
+applied to given 
+types;
+                  
+SyncRecord record = 
+new SyncRecord();
+                      
+                ^
+    required: String,S
+tring,boolean,String
+    found:    no 
+arguments
+    reason: actual 
+and formal argument 
+lists differ in length
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:923: 
+error: cannot find 
+symbol
+                  reco
+rd.setLocalId(cursor.g
+etLong(cursor.getColum
+nIndexOrThrow(COL_LOCA
+L_ID)));
+                      
+  ^
+    symbol:   method 
+setLocalId(long)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:924: 
+error: cannot find 
+symbol
+                  reco
+rd.setTableName(cursor
+.getString(cursor.getC
+olumnIndexOrThrow(COL_
+TABLE_NAME)));
+                      
+  ^
+    symbol:   method 
+setTableName(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:925: 
+error: cannot find 
+symbol
+                  reco
+rd.setRecordId(cursor.
+getLong(cursor.getColu
+mnIndexOrThrow(COL_REC
+ORD_ID)));
+                      
+  ^
+    symbol:   method 
+setRecordId(long)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:926: 
+error: cannot find 
+symbol
+                  reco
+rd.setAction(cursor.ge
+tString(cursor.getColu
+mnIndexOrThrow(COL_ACT
+ION)));
+                      
+  ^
+    symbol:   method 
+setAction(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:927: 
+error: cannot find 
+symbol
+                  reco
+rd.setDataJson(cursor.
+getString(cursor.getCo
+lumnIndexOrThrow(COL_D
+ATA_JSON)));
+                      
+  ^
+    symbol:   method 
+setDataJson(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:928: 
+error: cannot find 
+symbol
+                  reco
+rd.setSyncStatus(curso
+r.getString(cursor.get
+ColumnIndexOrThrow(COL
+_SYNC_STATUS)));
+                      
+  ^
+    symbol:   method 
+setSyncStatus(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:929: 
+error: cannot find 
+symbol
+                  reco
+rd.setErrorMessage(cur
+sor.getString(cursor.g
+etColumnIndexOrThrow(C
+OL_ERROR_MESSAGE)));
+                      
+  ^
+    symbol:   method s
+etErrorMessage(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:930: 
+error: cannot find 
+symbol
+                  reco
+rd.setRetryCount(curso
+r.getInt(cursor.getCol
+umnIndexOrThrow(COL_RE
+TRY_COUNT)));
+                      
+  ^
+    symbol:   method 
+setRetryCount(int)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:985: 
+error: constructor 
+SyncRecord in class 
+SyncRecord cannot be 
+applied to given 
+types;
+                  
+SyncRecord record = 
+new SyncRecord();
+                      
+                ^
+    required: String,S
+tring,boolean,String
+    found:    no 
+arguments
+    reason: actual 
+and formal argument 
+lists differ in length
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:986: 
+error: cannot find 
+symbol
+                  reco
+rd.setLocalId(cursor.g
+etLong(cursor.getColum
+nIndexOrThrow(COL_LOCA
+L_ID)));
+                      
+  ^
+    symbol:   method 
+setLocalId(long)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:987: 
+error: cannot find 
+symbol
+                  reco
+rd.setTableName(cursor
+.getString(cursor.getC
+olumnIndexOrThrow(COL_
+TABLE_NAME)));
+                      
+  ^
+    symbol:   method 
+setTableName(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:988: 
+error: cannot find 
+symbol
+                  reco
+rd.setRecordId(cursor.
+getLong(cursor.getColu
+mnIndexOrThrow(COL_REC
+ORD_ID)));
+                      
+  ^
+    symbol:   method 
+setRecordId(long)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:989: 
+error: cannot find 
+symbol
+                  reco
+rd.setAction(cursor.ge
+tString(cursor.getColu
+mnIndexOrThrow(COL_ACT
+ION)));
+                      
+  ^
+    symbol:   method 
+setAction(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:990: 
+error: cannot find 
+symbol
+                  reco
+rd.setDataJson(cursor.
+getString(cursor.getCo
+lumnIndexOrThrow(COL_D
+ATA_JSON)));
+                      
+  ^
+    symbol:   method 
+setDataJson(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:991: 
+error: cannot find 
+symbol
+                  reco
+rd.setSyncStatus(curso
+r.getString(cursor.get
+ColumnIndexOrThrow(COL
+_SYNC_STATUS)));
+                      
+  ^
+    symbol:   method 
+setSyncStatus(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:992: 
+error: cannot find 
+symbol
+                  reco
+rd.setErrorMessage(cur
+sor.getString(cursor.g
+etColumnIndexOrThrow(C
+OL_ERROR_MESSAGE)));
+                      
+  ^
+    symbol:   method s
+etErrorMessage(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:993: 
+error: cannot find 
+symbol
+                  reco
+rd.setRetryCount(curso
+r.getInt(cursor.getCol
+umnIndexOrThrow(COL_RE
+TRY_COUNT)));
+                      
+  ^
+    symbol:   method 
+setRetryCount(int)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1007: 
+error: cannot find 
+symbol
+          values.put(C
+OL_SYNC_STATUS, record
+.getSyncStatus());
+                      
+                      
+^
+    symbol:   method 
+getSyncStatus()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1008: 
+error: cannot find 
+symbol
+          values.put(C
+OL_ERROR_MESSAGE, reco
+rd.getErrorMessage());
+                      
+                      
+  ^
+    symbol:   method 
+getErrorMessage()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1009: 
+error: cannot find 
+symbol
+          values.put(C
+OL_RETRY_COUNT, record
+.getRetryCount());
+                      
+                      
+^
+    symbol:   method 
+getRetryCount()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\database\Databas
+eHelper.java:1013: 
+error: cannot find 
+symbol
+                  new 
+String[] { String.valu
+eOf(record.getLocalId(
+)) });
+                      
+                      
+          ^
+    symbol:   method 
+getLocalId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:44: error: 
+cannot find symbol
+          holder.tvTab
+leName.setText(formatT
+ableName(record.getTab
+leName()));
+                      
+                      
+               ^
+    symbol:   method 
+getTableName()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:45: error: 
+cannot find symbol
+          holder.tvRec
+ordId.setText("ID: " 
++ 
+record.getRecordId());
+                      
+                      
+       ^
+    symbol:   method 
+getRecordId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:49: error: 
+cannot find symbol
+              Date 
+date = new Date(record
+.getCreatedAt());
+                      
+                   ^
+    symbol:   method 
+getCreatedAt()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:56: error: 
+cannot find symbol
+          String 
+status = record.getSyn
+cStatus();
+                      
+          ^
+    symbol:   method 
+getSyncStatus()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:78: error: 
+cannot find symbol
+          String 
+error = record.getErro
+rMessage();
+                      
+         ^
+    symbol:   method 
+getErrorMessage()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:116: error: 
+cannot find symbol
+              
+ivStatusIcon = itemVie
+w.findViewById(R.id.iv
+StatusIcon);
+                      
+                      
+           ^
+    symbol:   
+variable ivStatusIcon
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:117: error: 
+cannot find symbol
+              
+tvTableName = itemView
+.findViewById(R.id.tvT
+ableName);
+                      
+                      
+          ^
+    symbol:   
+variable tvTableName
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:118: error: 
+cannot find symbol
+              
+tvRecordId = itemView.
+findViewById(R.id.tvRe
+cordId);
+                      
+                      
+         ^
+    symbol:   
+variable tvRecordId
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:120: error: 
+cannot find symbol
+              
+tvStatus = itemView.fi
+ndViewById(R.id.tvStat
+us);
+                      
+                      
+       ^
+    symbol:   
+variable tvStatus
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncAda
+pter.java:121: error: 
+cannot find symbol
+              tvError 
+= itemView.findViewByI
+d(R.id.tvError);
+                      
+                      
+      ^
+    symbol:   
+variable tvError
+    location: class id
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncPen
+dingAdapter.java:42: 
+error: cannot find 
+symbol
+          String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+             ^
+    symbol:   method 
+getTableName()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncPen
+dingAdapter.java:42: 
+error: cannot find 
+symbol
+          String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+                      
+                      
+                 ^
+    symbol:   method 
+getTableName()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncPen
+dingAdapter.java:44: 
+error: cannot find 
+symbol
+          holder.tvTyp
+e.setText("Record ID: 
+" + 
+record.getRecordId());
+                      
+                      
+          ^
+    symbol:   method 
+getRecordId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncPen
+dingAdapter.java:45: 
+error: cannot find 
+symbol
+          holder.tvTim
+estamp.setText(getTime
+Ago(record.getCreatedA
+t()));
+                      
+                      
+          ^
+    symbol:   method 
+getCreatedAt()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncSyn
+cedAdapter.java:42: 
+error: cannot find 
+symbol
+20 actionable tasks: 1 executed, 19 up-to-date
+          String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+             ^
+    symbol:   method 
+getTableName()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncSyn
+cedAdapter.java:42: 
+error: cannot find 
+symbol
+          String 
+tableName = 
+record.getTableName() 
+!= null ? formatTableN
+ame(record.getTableNam
+e()) : "Unknown";
+                      
+                      
+                      
+                 ^
+    symbol:   method 
+getTableName()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\adapters\SyncSyn
+cedAdapter.java:44: 
+error: cannot find 
+symbol
+          holder.tvTim
+estamp.setText(getTime
+Ago(record.getCreatedA
+t()));
+                      
+                      
+          ^
+    symbol:   method 
+getCreatedAt()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:92: error: 
+cannot find symbol
+              String 
+tableName = 
+record.getTableName();
+                      
+                 ^
+    symbol:   method 
+getTableName()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:93: error: 
+cannot find symbol
+              long 
+recordId = 
+record.getRecordId();
+                      
+              ^
+    symbol:   method 
+getRecordId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:121: error: 
+cannot find symbol
+              dbHelper
+.deleteSyncRecord(reco
+rd.getId());
+                      
+                      
+  ^
+    symbol:   method 
+getId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:171: error: 
+cannot find symbol
+              dbHelper
+.deleteSyncRecord(reco
+rd.getId());
+                      
+                      
+  ^
+    symbol:   method 
+getId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:220: error: 
+cannot find symbol
+              dbHelper
+.deleteSyncRecord(reco
+rd.getId());
+                      
+                      
+  ^
+    symbol:   method 
+getId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:267: error: 
+cannot find symbol
+              dbHelper
+.deleteSyncRecord(reco
+rd.getId());
+                      
+                      
+  ^
+    symbol:   method 
+getId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:312: error: 
+cannot find symbol
+              dbHelper
+.deleteSyncRecord(reco
+rd.getId());
+                      
+                      
+  ^
+    symbol:   method 
+getId()
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:355: error: 
+cannot find symbol
+          record.setSy
+ncStatus(status);
+                ^
+    symbol:   method 
+setSyncStatus(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:356: error: 
+cannot find symbol
+          record.setEr
+rorMessage(errorMessag
+e);
+                ^
+    symbol:   method s
+etErrorMessage(String)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:357: error: 
+cannot find symbol
+          record.setLa
+stSyncAttempt(System.c
+urrentTimeMillis());
+                ^
+    symbol:   method s
+etLastSyncAttempt(long
+)
+    location: 
+variable record of 
+type SyncRecord
+  C:\Users\SSD\Android
+StudioProjects\ASHASma
+rtCare\app\src\main\ja
+va\com\simats\ashasmar
+tcare\services\SyncSer
+vice.java:359: error: 
+cannot find symbol
+          Log.d(TAG, 
+"Updated sync record 
+" + record.getId() + 
+" to status: " + 
+status);
+                      
+                      
+        ^
+    symbol:   method 
+getId()
+    location: 
+variable record of 
+type SyncRecord
+  Note: Some input 
+files use or override 
+a deprecated API.
+  Note: Recompile 
+with 
+-Xlint:deprecation 
+for details.
+  50 errors
+
+* Try:
+> Check your code and 
+dependencies to fix 
+the compilation 
+error(s)
+> Run with --scan to 
+get full insights.
+
+BUILD FAILED in 6s
