@@ -9,7 +9,7 @@ public class Constants {
         // NOTE: This is the DEFAULT URL. The actual URL used is stored in
         // SessionManager
         // and can be configured by the user in WelcomeActivity.
-        public static final String API_BASE_URL = "http://192.168.1.69/asha_api/"; // Your local network IP
+        public static final String API_BASE_URL = "http://10.203.210.63/asha_api/"; // Your local network IP
 
         // API Endpoints
         public static final String API_LOGIN = "auth.php";

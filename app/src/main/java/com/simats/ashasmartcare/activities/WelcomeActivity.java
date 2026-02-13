@@ -83,7 +83,7 @@ public class WelcomeActivity extends AppCompatActivity {
     private void showServerIpDialog() {
         final android.widget.EditText input = new android.widget.EditText(this);
         input.setText(sessionManager.getApiBaseUrl());
-        input.setHint("http://192.168.1.69/asha_api/");
+        input.setHint("http://10.203.210.63/asha_api/");
 
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Configure Server URL")
